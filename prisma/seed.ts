@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import * as bcrypt from 'bcrypt';
+import { HashingService } from "src/hashing/hashing.service";
 
 const prisma = new PrismaClient();
 
@@ -7,8 +9,8 @@ async function main() {
         data: {
             name: 'Caetano',
             cpf: '12345678901',
-            email: 'caetano@caetano',
-            password: '123456',
+            email: 'caetano@gmail.com',
+            password: await bcrypt.hash('dpmg123', 10),
             role: 'ADMIN'
         }
     });

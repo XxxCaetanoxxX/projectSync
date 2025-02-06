@@ -1,15 +1,40 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { HashingService } from 'src/hashing/hashing.service';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly hashingService: HashingService
   ) { }
-  async create(createUserDto: CreateUserDto) {
-    return await this.prisma.user.create({ data: createUserDto });
+
+  async login(loginDto: LoginDto) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: loginDto.email
+      }
+    })
+    if (!user) throw new NotFoundException('User not found with the email!');
+    const isValidPassword = await this.hashingService.compare(loginDto.password, user.password);
+    if (!isValidPassword) throw new UnauthorizedException('Invalid password!');
+
+    return user
+  }
+
+  async create({ password, ...createUserDto }: CreateUserDto) {
+    const passwordHash = await this.hashingService.encrypt(password);
+    return await this.prisma.user.create(
+      {
+        data: {
+          ...createUserDto,
+          password: passwordHash
+        }
+      }
+    );
   }
 
   async findAll() {
