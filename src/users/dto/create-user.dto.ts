@@ -1,4 +1,4 @@
-import { Roles } from "src/commom/enums";
+import { Roles } from "src/commom/enums/roles.enum";
 
 export class CreateUserDto {
     name: string;
