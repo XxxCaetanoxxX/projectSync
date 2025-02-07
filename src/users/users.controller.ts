@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Req, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -39,4 +39,10 @@ export class UsersController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);
   }
+
+  // @Post('/deletemany')
+  // removeMany(@Query('name') name: string) {
+  //   console.log(name);
+  //   return this.usersService.removeMany(name);
+  // }
 }

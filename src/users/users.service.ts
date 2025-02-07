@@ -68,4 +68,17 @@ export class UsersService {
       where: { id }
     });
   }
+
+  // async removeMany(name: string) {
+  //   if(!name) throw new NotFoundException('Please, write a name!');
+  //    const result = await this.prisma.user.deleteMany({
+  //     where: {
+  //       name:{
+  //         contains: name
+  //       }
+  //     }
+  //   });
+  //   console.log(result);
+  //   return {message: `${result.count} users deleted!`};
+  // }
 }
