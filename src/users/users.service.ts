@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { HashingService } from 'src/hashing/hashing.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { HashingService } from '../hashing/hashing.service';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
