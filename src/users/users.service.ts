@@ -1,4 +1,4 @@
-import { HttpException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -12,7 +12,10 @@ export class UsersService {
     private readonly hashingService: HashingService
   ) { }
 
+
+
   async login(loginDto: LoginDto) {
+    const jwt = require('jsonwebtoken');
     const user = await this.prisma.user.findUnique({
       where: {
         email: loginDto.email
@@ -22,7 +25,7 @@ export class UsersService {
     const isValidPassword = await this.hashingService.compare(loginDto.password, user.password);
     if (!isValidPassword) throw new UnauthorizedException('Invalid password!');
 
-    return user
+    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role}, process.env.JWT_SECRETY, { expiresIn: '1h' });
   }
 
   async create({ password, ...createUserDto }: CreateUserDto) {
