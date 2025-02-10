@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { HashingModule } from './hashing/hashing.module';
-import { TokenGuard } from './commom/guards/token.guard.guard';
+import { TokenRoleGuard } from './commom/guards/token_role.guard';
 
 @Module({
   imports: [UsersModule, PrismaModule, HashingModule],
@@ -10,7 +10,7 @@ import { TokenGuard } from './commom/guards/token.guard.guard';
   providers: [
     {
       provide: 'APP_GUARD',
-      useClass: TokenGuard,
+      useClass: TokenRoleGuard,
     }
   ],
 })

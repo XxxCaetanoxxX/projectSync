@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {config} from 'dotenv'
-import { TokenGuard } from './commom/guards/token.guard.guard';
 import { ValidationPipe } from '@nestjs/common';
 config();
 

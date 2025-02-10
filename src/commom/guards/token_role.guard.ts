@@ -4,7 +4,7 @@ import * as jwt from 'jsonwebtoken';
 import { Observable } from 'rxjs';
 
 @Injectable()
-export class TokenGuard implements CanActivate {
+export class TokenRoleGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
   canActivate(
     context: ExecutionContext,
