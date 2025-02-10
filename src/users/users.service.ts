@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { HashingService } from '../hashing/hashing.service';
 import { LoginDto } from './dto/login.dto';
+import { Roles } from 'src/commom/enums/roles.enum';
 
 @Injectable()
 export class UsersService {
