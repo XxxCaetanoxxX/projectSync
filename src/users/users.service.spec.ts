@@ -33,9 +33,19 @@ describe('UsersService', () => {
     expect(result).toBeDefined();
   });
 
+  it('should find all users', async () => {
+    const result = await service.findAll();
+    expect(result.length).toBeGreaterThan(5);
+   })
+
+  it('should find one user', async () => {
+    const result = await service.findOne(1);
+    expect(result.name).toEqual('Caetano');
+  })
+
   it('should be create user', async () => {
     const createUserDto:CreateUserDto = {
-      name: 'Test user2',
+      name: 'Test user3',
       role: Roles.ADMIN,
       cpf: '7894564192',
       email: 'testuser2@gmail.com',
@@ -52,6 +62,15 @@ describe('UsersService', () => {
       'role', 
       'creation_date'
     ]);
+  })
+
+  it('should update an user', async () => {
+    const updateUserDto = {
+      name: 'Caetano'
+    };
+    const result = await service.update(id, updateUserDto);
+    console.log(result);
+    expect(result.name).toEqual(updateUserDto.name);
   })
 
   it('should delete user', async () => {
