@@ -28,3 +28,37 @@ model User{
   role Role
   creation_date DateTime? @default(now())
 }
+
+model Artist{
+  id            Int   @id @default(autoincrement())
+  name          String
+  genre         String
+  bio           String?
+  social        String?
+  events        EventArtist[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Event {
+  id            Int   @id @default(autoincrement())
+  name          String
+  description   String
+  date          DateTime
+  location      String
+  finished      Boolean @default(false)
+  artists       EventArtist[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model EventArtist {
+  id            Int     @id @default(autoincrement())
+  eventId       Int
+  artistId      Int
+
+  event         Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  artist        Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, artistId])
+}
