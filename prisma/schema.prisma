@@ -13,18 +13,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role{
+enum Role {
   ADMIN
   ORGANIZER
   PARTICIPANT
 }
 
-model User{
-  id            Int @id @default(autoincrement())
-  name          String 
-  cpf           String @unique 
-  email         String @unique 
-  password      String 
-  role Role
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  cpf           String    @unique
+  email         String    @unique
+  password      String
+  role          Role
   creation_date DateTime? @default(now())
+}
+
+model Event {
+  id      Int           @id @default(autoincrement())
+  artists ArtistEvent[]
+}
+
+model Artist {
+  id     Int           @id @default(autoincrement())
+  name   String
+  events ArtistEvent[]
+}
+
+model ArtistEvent {
+  id       Int    @id @default(autoincrement())
+  artistId Int
+  artist   Artist @relation(fields: [artistId], references: [id])
+
+  eventId Int
+  event   Event @relation(fields: [eventId], references: [id])
+
+  @@unique([artistId, eventId])
 }
