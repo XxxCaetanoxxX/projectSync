@@ -4,7 +4,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { HashingService } from '../hashing/hashing.service';
 import { LoginDto } from './dto/login.dto';
-import { Roles } from 'src/commom/enums/roles.enum';
 
 @Injectable()
 export class UsersService {
@@ -26,7 +25,7 @@ export class UsersService {
     const isValidPassword = await this.hashingService.compare(loginDto.password, user.password);
     if (!isValidPassword) throw new UnauthorizedException('Invalid password!');
 
-    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role}, process.env.JWT_SECRETY, { expiresIn: '1h' });
+    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY, { expiresIn: '1h' });
   }
 
   async create({ password, ...createUserDto }: CreateUserDto) {
