@@ -1,0 +1,29 @@
+import { Injectable } from '@nestjs/common';
+import { CreateArtistEventDto } from './dto/create-artist_event.dto';
+import { UpdateArtistEventDto } from './dto/update-artist_event.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Injectable()
+export class ArtistEventService {
+  constructor(private readonly prisma: PrismaService) { }
+  async create(createArtistEventDto: CreateArtistEventDto) {
+    const artist_event = await this.prisma.artist_event.create({ data: createArtistEventDto });
+    return artist_event;
+  }
+
+  findAll() {
+    return `This action returns all artistEvent`;
+  }
+
+  findOne(id: number) {
+    return `This action returns a #${id} artistEvent`;
+  }
+
+  update(id: number, updateArtistEventDto: UpdateArtistEventDto) {
+    return `This action updates a #${id} artistEvent`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} artistEvent`;
+  }
+}

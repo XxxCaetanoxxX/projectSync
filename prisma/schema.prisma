@@ -19,7 +19,7 @@ enum Role {
   PARTICIPANT
 }
 
-model User {
+model user {
   id            Int       @id @default(autoincrement())
   name          String
   cpf           String    @unique
@@ -29,25 +29,26 @@ model User {
   creation_date DateTime? @default(now())
 }
 
-model Event {
-  id      Int           @id @default(autoincrement())
+model event {
+  id      Int            @id @default(autoincrement())
   name    String
-  artists ArtistEvent[]
+  artists artist_event[]
 }
 
-model Artist {
-  id     Int           @id @default(autoincrement())
+model artist {
+  id     Int            @id @default(autoincrement())
   name   String
-  events ArtistEvent[]
+  events artist_event[]
 }
 
-model ArtistEvent {
-  id       Int    @id @default(autoincrement())
+model artist_event {
+  id Int @id @default(autoincrement())
+
   artistId Int
-  artist   Artist @relation(fields: [artistId], references: [id])
+  artist   artist @relation(fields: [artistId], references: [id])
 
   eventId Int
-  event   Event @relation(fields: [eventId], references: [id])
+  event   event @relation(fields: [eventId], references: [id])
 
   @@unique([artistId, eventId])
 }
