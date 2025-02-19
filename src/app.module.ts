@@ -3,12 +3,12 @@ import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { HashingModule } from './hashing/hashing.module';
 import { TokenRoleGuard } from './commom/guards/token_role.guard';
-import { ArtistsModule } from './artists/artists.module';
+import { ArtistModule } from './artists/artists.module';
 import { EventModule } from './event/event.module';
 import { ArtistEventModule } from './artist_event/artist_event.module';
 
 @Module({
-  imports: [UsersModule, PrismaModule, HashingModule, ArtistsModule, EventModule, ArtistEventModule],
+  imports: [UsersModule, PrismaModule, HashingModule, ArtistModule, EventModule, ArtistEventModule],
   controllers: [],
   providers: [
     {
@@ -17,4 +17,4 @@ import { ArtistEventModule } from './artist_event/artist_event.module';
     }
   ],
 })
-export class AppModule {}
+export class AppModule { }

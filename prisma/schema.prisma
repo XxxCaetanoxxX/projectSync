@@ -45,10 +45,10 @@ model artist_event {
   id Int @id @default(autoincrement())
 
   artistId Int
-  artist   artist @relation(fields: [artistId], references: [id])
+  artist   artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   eventId Int
-  event   event @relation(fields: [eventId], references: [id])
+  event   event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([artistId, eventId])
 }
