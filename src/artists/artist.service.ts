@@ -12,11 +12,12 @@ export class ArtistService {
     return artist;
   }
 
-  async findAll({ name }: FindAllArtistsDto) {
+  async findAll({ name, ...dto }: FindAllArtistsDto) {
     const res = await this.prisma.artist.findMany({
       where: {
+        ...dto,
         name: {
-          contains: name,
+          contains: name
         }
       }
     });

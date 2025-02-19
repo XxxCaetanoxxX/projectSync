@@ -5,7 +5,7 @@ import { UpdateArtistEventDto } from './dto/update-artist_event.dto';
 
 @Controller('artist-event')
 export class ArtistEventController {
-  constructor(private readonly artistEventService: ArtistEventService) {}
+  constructor(private readonly artistEventService: ArtistEventService) { }
 
   @Post()
   create(@Body() createArtistEventDto: CreateArtistEventDto) {

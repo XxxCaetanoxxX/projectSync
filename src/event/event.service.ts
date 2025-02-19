@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { FindAllEventsDto } from './dto/find-all-events.dto';
 
 @Injectable()
 export class EventService {
@@ -11,19 +12,26 @@ export class EventService {
     return event
   }
 
-  findAll() {
-    return `This action returns all event`;
+  async findAll({ name, ...dto }: FindAllEventsDto) {
+    return await this.prisma.event.findMany({
+      where: {
+        ...dto,
+        name: {
+          contains: name
+        }
+      }
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} event`;
+  async findOne(id: number) {
+    return await this.prisma.event.findUniqueOrThrow({ where: { id } });
   }
 
-  update(id: number, updateEventDto: UpdateEventDto) {
-    return `This action updates a #${id} event`;
+  async update(id: number, { ...updateEventDto }: UpdateEventDto) {
+    return await this.prisma.event.update({ where: { id }, data: { ...updateEventDto } });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} event`;
+  async remove(id: number) {
+    return await this.prisma.event.delete({ where: { id } });
   }
 }

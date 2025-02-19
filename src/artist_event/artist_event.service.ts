@@ -11,8 +11,8 @@ export class ArtistEventService {
     return artist_event;
   }
 
-  findAll() {
-    return `This action returns all artistEvent`;
+  async findAll() {
+    return await this.prisma.artist_event.findMany();
   }
 
   findOne(id: number) {

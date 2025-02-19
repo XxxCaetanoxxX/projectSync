@@ -11,10 +11,10 @@ import { ArtistEventModule } from './artist_event/artist_event.module';
   imports: [UsersModule, PrismaModule, HashingModule, ArtistModule, EventModule, ArtistEventModule],
   controllers: [],
   providers: [
-    {
-      provide: 'APP_GUARD',
-      useClass: TokenRoleGuard,
-    }
+    // {
+    //   provide: 'APP_GUARD',
+    //   useClass: TokenRoleGuard,
+    // }
   ],
 })
 export class AppModule { }
