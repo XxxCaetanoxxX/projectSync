@@ -30,10 +30,23 @@ export class ArtistService {
         id: id
       },
       include: {
-        events: true
+        events: {
+          include: {
+            event:{
+              select:{
+                id: true,
+                name: true
+              }
+            }
+          }
+        }
       }
     })
-    return artist;
+    return {
+      id:artist.id,
+      name:artist.name,
+      events:artist.events.map(e => e.event)
+    }
   }
 
   async update(id: number, { ...updateArtistDto }: UpdateArtistDto) {
