@@ -24,7 +24,26 @@ export class EventService {
   }
 
   async findOne(id: number) {
-    return await this.prisma.event.findUniqueOrThrow({ where: { id } });
+    const event = await this.prisma.event.findUniqueOrThrow({
+      where: { id },
+      include: {
+        artists: {
+          include: {
+            artist: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        }
+      }
+    });
+    return {
+      id: event.id,
+      name: event.name,
+      artists: event.artists.map(a => a.artist)
+    }
   }
 
   async update(id: number, { ...updateEventDto }: UpdateEventDto) {
