@@ -16,7 +16,7 @@ export class UsersService {
 
   async login(loginDto: LoginDto) {
     const jwt = require('jsonwebtoken');
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.tb_user.findUnique({
       where: {
         email: loginDto.email
       }
@@ -30,7 +30,7 @@ export class UsersService {
 
   async create({ password, ...createUserDto }: CreateUserDto) {
     const passwordHash = await this.hashingService.encrypt(password);
-    return await this.prisma.user.create(
+    return await this.prisma.tb_user.create(
       {
         data: {
           ...createUserDto,
@@ -41,11 +41,11 @@ export class UsersService {
   }
 
   async findAll() {
-    return await this.prisma.user.findMany();
+    return await this.prisma.tb_user.findMany();
   }
 
   async findOne(id: number) {
-    return this.prisma.user.findUniqueOrThrow({
+    return this.prisma.tb_user.findUniqueOrThrow({
       where: {
         id
       }
@@ -53,7 +53,7 @@ export class UsersService {
   }
 
   async update(id: number, { ...updateUserDto }: UpdateUserDto) {
-    return await this.prisma.user.update({
+    return await this.prisma.tb_user.update({
       where: {
         id
       },
@@ -64,7 +64,7 @@ export class UsersService {
   }
 
   async remove(id: number) {
-    return await this.prisma.user.delete({
+    return await this.prisma.tb_user.delete({
       where: { id }
     });
   }
