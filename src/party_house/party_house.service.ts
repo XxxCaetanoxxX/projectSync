@@ -17,7 +17,46 @@ export class PartyHouseService {
   }
 
   async findOne(id: number) {
-    return await this.prisma.tb_party_house.findFirstOrThrow({ where: { id } });
+    const partyHouse = await this.prisma.tb_party_house.findFirstOrThrow(
+      {
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          address: true,
+          events: {
+            select: {
+              id: true,
+              name: true,
+              artists: {
+                select: {
+                  artist: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }
+    );
+
+    return {
+      id: partyHouse.id,
+      name: partyHouse.name,
+      address: partyHouse.address,
+      events: partyHouse.events.map(event => ({
+        id: event.id,
+        name: event.name,
+        artists: event.artists.map(artistEvent => ({
+          id: artistEvent.artist.id,
+          name: artistEvent.artist.name,
+        })),
+      })),
+    }
   }
 
   async update(id: number, { ...updatePartyHouseDto }: UpdatePartyHouseDto) {

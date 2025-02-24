@@ -11,19 +11,19 @@ export class ArtistEventService {
     return artist_event;
   }
 
-  async findAll() {
-    return await this.prisma.tb_artist_event.findMany();
-  }
+  // async findAll() {
+  //   return await this.prisma.tb_artist_event.findMany();
+  // }
 
-  findOne(id: number) {
-    return `This action returns a #${id} artistEvent`;
-  }
+  // findOne(id: number) {
+  //   return `This action returns a #${id} artistEvent`;
+  // }
 
-  update(id: number, updateArtistEventDto: UpdateArtistEventDto) {
-    return `This action updates a #${id} artistEvent`;
-  }
+  // update(id: number, updateArtistEventDto: UpdateArtistEventDto) {
+  //   return `This action updates a #${id} artistEvent`;
+  // }
 
-  remove(id: number) {
-    return `This action removes a #${id} artistEvent`;
+  async remove(id: number) {
+    return await this.prisma.tb_artist_event.delete({ where: { id } });
   }
 }

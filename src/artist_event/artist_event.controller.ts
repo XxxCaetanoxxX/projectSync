@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { ArtistEventService } from './artist_event.service';
 import { CreateArtistEventDto } from './dto/create-artist_event.dto';
 import { UpdateArtistEventDto } from './dto/update-artist_event.dto';
@@ -12,23 +12,23 @@ export class ArtistEventController {
     return this.artistEventService.create(createArtistEventDto);
   }
 
-  @Get()
-  findAll() {
-    return this.artistEventService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.artistEventService.findAll();
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.artistEventService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.artistEventService.findOne(+id);
+  // }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateArtistEventDto: UpdateArtistEventDto) {
-    return this.artistEventService.update(+id, updateArtistEventDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateArtistEventDto: UpdateArtistEventDto) {
+  //   return this.artistEventService.update(+id, updateArtistEventDto);
+  // }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.artistEventService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.artistEventService.remove(id);
   }
 }
