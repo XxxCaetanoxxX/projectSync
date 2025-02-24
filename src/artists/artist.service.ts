@@ -8,12 +8,12 @@ import { FindAllArtistsDto } from './dto/find-all-artists.dto';
 export class ArtistService {
   constructor(private readonly prisma: PrismaService) { }
   async create(createArtistDto: CreateArtistDto) {
-    const artist = await this.prisma.artist.create({ data: createArtistDto });
+    const artist = await this.prisma.tb_artist.create({ data: createArtistDto });
     return artist;
   }
 
   async findAll({ name, ...dto }: FindAllArtistsDto) {
-    const res = await this.prisma.artist.findMany({
+    const res = await this.prisma.tb_artist.findMany({
       where: {
         ...dto,
         name: {
@@ -25,15 +25,15 @@ export class ArtistService {
   }
 
   async findOne(id: number) {
-    const artist = await this.prisma.artist.findUniqueOrThrow({
+    const artist = await this.prisma.tb_artist.findUniqueOrThrow({
       where: {
         id: id
       },
       include: {
         events: {
           include: {
-            event:{
-              select:{
+            event: {
+              select: {
                 id: true,
                 name: true
               }
@@ -43,14 +43,14 @@ export class ArtistService {
       }
     })
     return {
-      id:artist.id,
-      name:artist.name,
-      events:artist.events.map(e => e.event)
+      id: artist.id,
+      name: artist.name,
+      events: artist.events.map(e => e.event)
     }
   }
 
   async update(id: number, { ...updateArtistDto }: UpdateArtistDto) {
-    return await this.prisma.artist.update({
+    return await this.prisma.tb_artist.update({
       where: {
         id
       },
@@ -59,7 +59,7 @@ export class ArtistService {
   }
 
   async remove(id: number) {
-    return await this.prisma.artist.delete({
+    return await this.prisma.tb_artist.delete({
       where: {
         id
       }

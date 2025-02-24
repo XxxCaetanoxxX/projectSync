@@ -19,36 +19,68 @@ enum Role {
   PARTICIPANT
 }
 
-model user {
-  id            Int       @id @default(autoincrement())
-  name          String
-  cpf           String    @unique
-  email         String    @unique
-  password      String
-  role          Role
-  creation_date DateTime? @default(now())
+model tb_user {
+  id        Int       @id @default(autoincrement())
+  name      String
+  cpf       String    @unique
+  email     String    @unique
+  password  String
+  role      Role
+  createdAt DateTime? @default(now())
+
+  eventsOrganized tb_event[] @relation("OrganizerToEvent")
+
+  eventsParticipated tb_event_participant[]
 }
 
-model event {
-  id      Int            @id @default(autoincrement())
+model tb_party_house {
+  id      Int        @id @default(autoincrement())
   name    String
-  artists artist_event[]
+  address String
+  events  tb_event[]
 }
 
-model artist {
-  id     Int            @id @default(autoincrement())
+model tb_event {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  artists tb_artist_event[]
+
+  organizerId Int
+  organizer   tb_user @relation("OrganizerToEvent", fields: [organizerId], references: [id])
+
+  participants tb_event_participant[]
+
+  partyHouseId Int
+  party_house  tb_party_house @relation(fields: [partyHouseId], references: [id], onDelete: Cascade)
+}
+
+model tb_artist {
+  id     Int               @id @default(autoincrement())
   name   String
-  events artist_event[]
+  events tb_artist_event[]
 }
 
-model artist_event {
+model tb_artist_event {
   id Int @id @default(autoincrement())
 
   artistId Int
-  artist   artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  artist   tb_artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   eventId Int
-  event   event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event   tb_event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([artistId, eventId])
+}
+
+model tb_event_participant {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user   tb_user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  eventId Int
+  event   tb_event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
 }

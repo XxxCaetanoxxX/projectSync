@@ -7,13 +7,13 @@ import { FindAllEventsDto } from './dto/find-all-events.dto';
 @Injectable()
 export class EventService {
   constructor(private readonly prisma: PrismaService) { }
-  async create(createEventDto: CreateEventDto) {
-    const event = await this.prisma.event.create({ data: createEventDto });
+  async create({ ...createEventDto }: CreateEventDto) {
+    const event = await this.prisma.tb_event.create({ data: { ...createEventDto } });
     return event
   }
 
   async findAll({ name, ...dto }: FindAllEventsDto) {
-    return await this.prisma.event.findMany({
+    return await this.prisma.tb_event.findMany({
       where: {
         ...dto,
         name: {
@@ -24,7 +24,7 @@ export class EventService {
   }
 
   async findOne(id: number) {
-    const event = await this.prisma.event.findUniqueOrThrow({
+    const event = await this.prisma.tb_event.findUniqueOrThrow({
       where: { id },
       include: {
         artists: {
@@ -47,10 +47,10 @@ export class EventService {
   }
 
   async update(id: number, { ...updateEventDto }: UpdateEventDto) {
-    return await this.prisma.event.update({ where: { id }, data: { ...updateEventDto } });
+    return await this.prisma.tb_event.update({ where: { id }, data: { ...updateEventDto } });
   }
 
   async remove(id: number) {
-    return await this.prisma.event.delete({ where: { id } });
+    return await this.prisma.tb_event.delete({ where: { id } });
   }
 }

@@ -6,9 +6,10 @@ import { TokenRoleGuard } from './commom/guards/token_role.guard';
 import { ArtistModule } from './artists/artists.module';
 import { EventModule } from './event/event.module';
 import { ArtistEventModule } from './artist_event/artist_event.module';
+import { PartyHouseModule } from './party_house/party_house.module';
 
 @Module({
-  imports: [UsersModule, PrismaModule, HashingModule, ArtistModule, EventModule, ArtistEventModule],
+  imports: [UsersModule, PrismaModule, HashingModule, ArtistModule, EventModule, ArtistEventModule, PartyHouseModule],
   controllers: [],
   providers: [
     // {

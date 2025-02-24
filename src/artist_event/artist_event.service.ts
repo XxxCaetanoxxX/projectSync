@@ -7,12 +7,12 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class ArtistEventService {
   constructor(private readonly prisma: PrismaService) { }
   async create(createArtistEventDto: CreateArtistEventDto) {
-    const artist_event = await this.prisma.artist_event.create({ data: createArtistEventDto });
+    const artist_event = await this.prisma.tb_artist_event.create({ data: createArtistEventDto });
     return artist_event;
   }
 
   async findAll() {
-    return await this.prisma.artist_event.findMany();
+    return await this.prisma.tb_artist_event.findMany();
   }
 
   findOne(id: number) {
