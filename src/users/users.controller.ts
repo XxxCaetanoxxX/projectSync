@@ -1,10 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Req, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseInterceptors, UploadedFile, UploadedFiles } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from 'src/commom/decorators/public_decorator.decorator';
 import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import * as path from 'path';
+import * as fs from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 
 @Controller('users')
 export class UsersController {
@@ -39,6 +43,34 @@ export class UsersController {
   update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
+
+  @Public()
+  @UseInterceptors(FileInterceptor('file')) //nome do campo form-data que vai estar o arquivo no postman
+  @Patch('image/:id')
+  async updatePhoto(@Param('id', ParseIntPipe) id: number ,@UploadedFile() file: Express.Multer.File){
+    //const mimiType = file.mimetype;
+    const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
+    const fileName = `${id}.${fileExtension}`; 
+    const fileLocale = path.resolve(process.cwd(), 'files', fileName);
+    await fs.writeFile(fileLocale, file.buffer);
+    return true
+  }
+
+  @Public()
+  @UseInterceptors(FilesInterceptor('files'))
+  @Patch('images/:id')
+  async updatePhotos(@Param('id', ParseIntPipe) id: number ,@UploadedFiles() files: Array<Express.Multer.File>){
+    files.forEach(async file => {
+      //const mimiType = file.mimetype;
+    const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
+    const fileName = `${randomUUID()}.${fileExtension}`; 
+    const fileLocale = path.resolve(process.cwd(), 'files', fileName);
+
+    await fs.writeFile(fileLocale, file.buffer);
+    });
+    return true
+  }
+
 
   @Roles('ADMIN', 'ORGANIZER')
   @Delete(':id')
