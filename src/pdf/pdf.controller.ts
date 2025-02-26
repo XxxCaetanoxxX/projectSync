@@ -26,10 +26,9 @@ export class PdfController {
             party_house: event.party_house,
             artists: event.artists.map(a => ({ id: a.artist.id, name: a.artist.name })),
         };
-
-        const pdfBuffer = await this.pdfService.generateEventPdf(eventData);
+        const pdfBuffer = await this.pdfService.generatePdf(eventData);
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename="evento.pdf"');
+        res.setHeader('Content-Disposition', 'attachment; filename="event.pdf"');
         res.send(pdfBuffer);
     }
 }
