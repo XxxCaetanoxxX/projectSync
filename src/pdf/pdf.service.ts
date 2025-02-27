@@ -22,8 +22,7 @@ export class PdfService {
     return await `
     <html>
     <head>
-    <h1">teste</h1>
-      <title>${data.title}</title>
+      <title>${data.title.toUpperCase()}</title>
     </head>
     <body
       style="display: flex; justify-content: space-between; flex-direction: column; margin: 0; color:gray; font-family: 'Roboto', sans-serif; height: 100vh;">
@@ -34,7 +33,7 @@ export class PdfService {
       </main>
       <footer
         style="font-size: small; font-weight: 500; border-top: rgb(183, 181, 181) 2px solid; padding: 10px; line-height: 2em; text-align: center;">
-        Coordenadoria de Estágio e Serviço Voluntário - CESV/DPMG <br>
+        Oferecimento de SyncEvents <br>
         Rua Bernardo Guimarães, 2731, 6° andar, Bairro Santo Agostinho, Belo Horizonte/MG, tel (31) 2522-8658
       </footer>
     </body>
@@ -47,7 +46,7 @@ export class PdfService {
       `
     <h1>${event.name}</h1>
     <ul>
-    <li>${event.artists.map(a => a.name).join(', ')}</li>
+    ${event.artists.map(a=>`<li>${a.name}</li>`).join('')}
     </ul>
     `;
 
