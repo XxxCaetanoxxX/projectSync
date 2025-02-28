@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseInterceptors, UploadedFile, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, UseInterceptors, UploadedFile, UploadedFiles } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -9,6 +9,8 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import * as path from 'path';
 import * as fs from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
+import { FindAllUsersDto } from './dto/find-all-users.dto';
+import { FindOneUserDto } from './dto/find-one-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -25,17 +27,17 @@ export class UsersController {
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
-  
+
   @Roles('ADMIN', 'ORGANIZER')
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() findAllUsersDto: FindAllUsersDto) {
+    return this.usersService.findAll(findAllUsersDto);
   }
 
   @Roles('ADMIN', 'ORGANIZER')
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne(id);
+  @Get('/one')
+  findOne(@Query() findOneUserDto: FindOneUserDto) {
+    return this.usersService.findOne(findOneUserDto);
   }
 
   @Roles('ADMIN', 'ORGANIZER')
@@ -47,10 +49,10 @@ export class UsersController {
   @Public()
   @UseInterceptors(FileInterceptor('file')) //nome do campo form-data que vai estar o arquivo no postman
   @Patch('image/:id')
-  async updatePhoto(@Param('id', ParseIntPipe) id: number ,@UploadedFile() file: Express.Multer.File){
+  async updatePhoto(@Param('id', ParseIntPipe) id: number, @UploadedFile() file: Express.Multer.File) {
     //const mimiType = file.mimetype;
     const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
-    const fileName = `${id}.${fileExtension}`; 
+    const fileName = `${id}.${fileExtension}`;
     const fileLocale = path.resolve(process.cwd(), 'files', fileName);
     await fs.writeFile(fileLocale, file.buffer);
     return true
@@ -59,14 +61,14 @@ export class UsersController {
   @Public()
   @UseInterceptors(FilesInterceptor('files'))
   @Patch('images/:id')
-  async updatePhotos(@Param('id', ParseIntPipe) id: number ,@UploadedFiles() files: Array<Express.Multer.File>){
+  async updatePhotos(@Param('id', ParseIntPipe) id: number, @UploadedFiles() files: Array<Express.Multer.File>) {
     files.forEach(async file => {
       //const mimiType = file.mimetype;
-    const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
-    const fileName = `${randomUUID()}.${fileExtension}`; 
-    const fileLocale = path.resolve(process.cwd(), 'files', fileName);
+      const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
+      const fileName = `${randomUUID()}.${fileExtension}`;
+      const fileLocale = path.resolve(process.cwd(), 'files', fileName);
 
-    await fs.writeFile(fileLocale, file.buffer);
+      await fs.writeFile(fileLocale, file.buffer);
     });
     return true
   }

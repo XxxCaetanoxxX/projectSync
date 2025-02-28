@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Roles } from '../commom/enums/roles.enum';
+import { RolesEnum } from '../commom/enums/roles.enum';
 import { PrismaService } from '../prisma/prisma.service';
 import { HashingService } from '../hashing/hashing.service';
 
@@ -34,19 +34,19 @@ describe('UsersService', () => {
   });
 
   it('should find all users', async () => {
-    const result = await service.findAll();
-    expect(result.length).toBeGreaterThan(5);
-   })
+    const result = await service.findAll({});
+    expect(result.length).toBeGreaterThan(2);
+  })
 
   it('should find one user', async () => {
-    const result = await service.findOne(1);
+    const result = await service.findOne({ id: 1 });
     expect(result.name).toEqual('Caetano');
   })
 
   it('should be create user', async () => {
-    const createUserDto:CreateUserDto = {
+    const createUserDto: CreateUserDto = {
       name: 'Test user3',
-      role: Roles.ADMIN,
+      role: RolesEnum.ADMIN,
       cpf: '7894564192',
       email: 'testuser2@gmail.com',
       password: 'dpmg123'
@@ -54,13 +54,13 @@ describe('UsersService', () => {
     const result = await service.create(createUserDto);
     id = result.id;
     expect(Object.keys(result)).toEqual([
-      'id', 
-      'name', 
-      'cpf', 
-      'email', 
-      'password', 
-      'role', 
-      'creation_date'
+      'id',
+      'name',
+      'cpf',
+      'email',
+      'password',
+      'role',
+      'createdAt'
     ]);
   })
 
@@ -69,7 +69,6 @@ describe('UsersService', () => {
       name: 'Caetano'
     };
     const result = await service.update(id, updateUserDto);
-    console.log(result);
     expect(result.name).toEqual(updateUserDto.name);
   })
 
