@@ -11,7 +11,7 @@ export class LoginDto {
     @IsPhoneNumber('BR')
     @IsString()
     @IsOptional()
-    @MaxLength(15)
+    @MaxLength(13)
     phone?: string;
 
     @IsString()

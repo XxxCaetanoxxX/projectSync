@@ -13,7 +13,7 @@ export class CreateUserDto {
     email: string;
 
     @IsPhoneNumber('BR')
-    @MaxLength(15)
+    @MaxLength(13)
     @IsString()
     phone: string;
 
