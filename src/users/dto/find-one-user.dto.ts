@@ -15,4 +15,8 @@ export class FindOneUserDto {
     @IsOptional()
     email?: string
 
+    @IsString()
+    @IsOptional()
+    phone?: string
+
 }
