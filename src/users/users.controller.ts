@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Req, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from 'src/commom/decorators/public_decorator.decorator';
 import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
+import { FindAllUsersDto } from './dto/find-all-users.dto';
+import { FindOneUserDto } from './dto/find-one-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -21,17 +23,17 @@ export class UsersController {
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
-  
+
   @Roles('ADMIN', 'ORGANIZER')
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() findAllUsersDto: FindAllUsersDto) {
+    return this.usersService.findAll(findAllUsersDto);
   }
 
   @Roles('ADMIN', 'ORGANIZER')
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne(id);
+  @Get('/one')
+  findOne(@Query() findOneUserDto: FindOneUserDto) {
+    return this.usersService.findOne(findOneUserDto);
   }
 
   @Roles('ADMIN', 'ORGANIZER')

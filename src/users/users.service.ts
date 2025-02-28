@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { HashingService } from '../hashing/hashing.service';
 import { LoginDto } from './dto/login.dto';
+import { FindAllUsersDto } from './dto/find-all-users.dto';
+import { FindOneUserDto } from './dto/find-one-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -40,17 +42,39 @@ export class UsersService {
     );
   }
 
-  async findAll() {
-    return await this.prisma.tb_user.findMany();
-  }
-
-  async findOne(id: number) {
-    return this.prisma.tb_user.findUniqueOrThrow({
+  async findAll({ name, ...dto }: FindAllUsersDto) {
+    return await this.prisma.tb_user.findMany({
       where: {
-        id
+        ...dto,
+        name: {
+          contains: name
+        },
       }
     });
   }
+
+  async findOne(findOneUserDto: FindOneUserDto) {
+    const { id, cpf, email } = findOneUserDto;
+
+    if (!id && !cpf && !email) {
+      throw new BadRequestException("You must provide an id, a cpf or an email!");
+    }
+
+    const providedParams = [id, cpf, email].filter(param => param !== undefined || '' || null);
+
+    if (providedParams.length !== 1) {
+      throw new BadRequestException("You can only provide one parameter!");
+    }
+
+    return this.prisma.tb_user.findUniqueOrThrow({
+      where: {
+        id: id || undefined,
+        cpf: cpf || undefined,
+        email: email || undefined
+      }
+    });
+  }
+
 
   async update(id: number, { ...updateUserDto }: UpdateUserDto) {
     return await this.prisma.tb_user.update({
