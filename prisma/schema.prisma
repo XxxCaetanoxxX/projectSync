@@ -20,13 +20,14 @@ enum Role {
 }
 
 model tb_user {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
-  cpf       String    @unique
-  email     String    @unique
+  cpf       String   @unique
+  email     String   @unique
+  phone     String   @unique
   password  String
   role      Role
-  createdAt DateTime? @default(now())
+  createdAt DateTime @default(now())
 
   eventsOrganized tb_event[] @relation("OrganizerToEvent")
 
