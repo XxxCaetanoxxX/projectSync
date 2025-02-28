@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePartyHouseDto } from './dto/create-party_house.dto';
 import { UpdatePartyHouseDto } from './dto/update-party_house.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { FindAllPartyHouseDto } from './dto/find-all-party-house.dto';
 
 @Injectable()
