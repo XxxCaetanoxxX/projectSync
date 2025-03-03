@@ -70,21 +70,21 @@ export class UsersService {
   async findOne(findOneUserDto: FindOneUserDto) {
     const { id, cpf, email } = findOneUserDto;
 
-    if (!id && !cpf && !email) {
-      throw new BadRequestException("You must provide an id, a cpf or an email!");
-    }
-
     const providedParams = [id, cpf, email].filter(param => param);
 
-    if (providedParams.length !== 1) {
+    if (providedParams.length === 0) {
+      throw new BadRequestException("You must provide an id, cpf, phone or an email!");
+    } else if (providedParams.length > 1) {
       throw new BadRequestException("You can only provide one parameter!");
     }
 
-    return this.prisma.tb_user.findUniqueOrThrow({
+    return this.prisma.tb_user.findFirst({
       where: {
-        id: id || undefined,
-        cpf: cpf || undefined,
-        email: email || undefined
+        OR: [
+          { id },
+          { cpf },
+          { email }
+        ]
       }
     });
   }
