@@ -28,7 +28,6 @@ export class UsersController {
 
   @Roles('ADMIN', 'ORGANIZER')
   @Post()
-  @ApiQuery({ name: 'role', enum: RolesEnum })
   @ApiResponse({
     status: 201,
     description: 'The user has been successfully created.',

@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger"
 import { Transform } from "class-transformer"
-import { IsInt, IsOptional, IsString, ValidateIf, validate } from "class-validator"
+import { IsInt, IsOptional, IsString, ValidateIf } from "class-validator"
 
 export class FindOneUserDto {
     @ApiPropertyOptional()
