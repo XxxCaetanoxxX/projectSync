@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { config } from 'dotenv'
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { PrismaExceptionFilter } from './prisma/prisma-exception.filter.ts.filter';
+import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
 config();
 
 async function bootstrap() {
