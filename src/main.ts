@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { config } from 'dotenv'
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { PrismaExceptionFilter } from './prisma/prisma-exception.filter.ts.filter';
 config();
 
 async function bootstrap() {
@@ -21,6 +22,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true
   }))
+  //usa filtro global
+  app.useGlobalFilters(new PrismaExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000, () => {
     console.log(`Server running on port ${process.env.PORT}`);
