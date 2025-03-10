@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -57,6 +57,17 @@ export class UsersController {
   })
   findOne(@Query() findOneUserDto: FindOneUserDto) {
     return this.usersService.findOne(findOneUserDto);
+  }
+
+  @Roles('ADMIN', 'ORGANIZER', 'PARTICIPANT')
+  @Get('/me')
+  @ApiResponse({
+    status: 200,
+    description: 'May found the logged user.',
+    example: FindOneUserSE
+  })
+  findLoggedUser(@Req() req: any) {
+    return this.usersService.findLoggedUser(req.user.id);
   }
 
   @Roles('ADMIN', 'ORGANIZER')

@@ -89,6 +89,12 @@ export class UsersService {
     });
   }
 
+  async findLoggedUser(id: number) {
+    return await this.prisma.tb_user.findFirst({
+       where: { id }
+    })
+  }
+
 
   async update(id: number, { ...updateUserDto }: UpdateUserDto) {
     return await this.prisma.tb_user.update({

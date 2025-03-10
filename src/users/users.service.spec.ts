@@ -78,4 +78,9 @@ describe('UsersService', () => {
     const result = await service.remove(id);
     expect(result).toBeDefined();
   })
+
+  it('should find logged user', async () => {
+    const result = await service.findLoggedUser(1);
+    expect(result.name).toEqual('Caetano');
+  })
 });
