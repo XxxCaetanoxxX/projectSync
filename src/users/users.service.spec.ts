@@ -48,6 +48,7 @@ describe('UsersService', () => {
       name: 'Test user3',
       role: RolesEnum.ADMIN,
       cpf: '7894564192',
+      phone: '5531997728631',
       email: 'testuser2@gmail.com',
       password: 'dpmg123'
     };
@@ -58,6 +59,7 @@ describe('UsersService', () => {
       'name',
       'cpf',
       'email',
+      'phone',
       'password',
       'role',
       'createdAt'
@@ -75,5 +77,10 @@ describe('UsersService', () => {
   it('should delete user', async () => {
     const result = await service.remove(id);
     expect(result).toBeDefined();
+  })
+
+  it('should find logged user', async () => {
+    const result = await service.findLoggedUser(1);
+    expect(result.name).toEqual('Caetano');
   })
 });

@@ -6,6 +6,7 @@ import { HashingService } from '../hashing/hashing.service';
 import { LoginDto } from './dto/login.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class UsersService {
@@ -17,17 +18,30 @@ export class UsersService {
 
 
   async login(loginDto: LoginDto) {
-    const jwt = require('jsonwebtoken');
-    const user = await this.prisma.tb_user.findUnique({
+    const { email, phone, password } = loginDto;
+
+    const providedParams = [email, phone].filter(param => param);
+
+    if (providedParams.length === 0) {
+      throw new BadRequestException("You must provide an email OR a phone.");
+    } else if (providedParams.length > 1) {
+      throw new BadRequestException("You must provide either an email OR a phone, not both.");
+    }
+
+    const user = await this.prisma.tb_user.findFirst({
       where: {
-        email: loginDto.email
+        OR: [
+          { email },
+          { phone }
+        ]
       }
     })
-    if (!user) throw new NotFoundException('User not found with the email!');
-    const isValidPassword = await this.hashingService.compare(loginDto.password, user.password);
+
+    if (!user) throw new NotFoundException('User not found with the email or phone provided!');
+    const isValidPassword = await this.hashingService.compare(password, user.password);
     if (!isValidPassword) throw new UnauthorizedException('Invalid password!');
 
-    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY, { expiresIn: '1h' });
+    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY, { expiresIn: '3h' });
   }
 
   async create({ password, ...createUserDto }: CreateUserDto) {
@@ -56,23 +70,29 @@ export class UsersService {
   async findOne(findOneUserDto: FindOneUserDto) {
     const { id, cpf, email } = findOneUserDto;
 
-    if (!id && !cpf && !email) {
-      throw new BadRequestException("You must provide an id, a cpf or an email!");
-    }
+    const providedParams = [id, cpf, email].filter(param => param);
 
-    const providedParams = [id, cpf, email].filter(param => param !== undefined || '' || null);
-
-    if (providedParams.length !== 1) {
+    if (providedParams.length === 0) {
+      throw new BadRequestException("You must provide an id, cpf, phone or an email!");
+    } else if (providedParams.length > 1) {
       throw new BadRequestException("You can only provide one parameter!");
     }
 
-    return this.prisma.tb_user.findUniqueOrThrow({
+    return this.prisma.tb_user.findFirst({
       where: {
-        id: id || undefined,
-        cpf: cpf || undefined,
-        email: email || undefined
+        OR: [
+          { id },
+          { cpf },
+          { email }
+        ]
       }
     });
+  }
+
+  async findLoggedUser(id: number) {
+    return await this.prisma.tb_user.findFirst({
+       where: { id }
+    })
   }
 
 
