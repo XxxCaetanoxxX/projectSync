@@ -13,10 +13,10 @@ import { PdfModule } from './pdf/pdf.module';
   imports: [UsersModule, PrismaModule, HashingModule, ArtistModule, EventModule, ArtistEventModule, PartyHouseModule, PdfModule],
   controllers: [],
   providers: [
-    {
-      provide: 'APP_GUARD',
-      useClass: TokenRoleGuard,
-    }
+    // {
+    //   provide: 'APP_GUARD',
+    //   useClass: TokenRoleGuard,
+    // }
   ],
 })
 export class AppModule { }

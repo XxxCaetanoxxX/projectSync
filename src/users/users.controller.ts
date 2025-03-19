@@ -7,8 +7,7 @@ import { Public } from 'src/commom/decorators/public_decorator.decorator';
 import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
-import { ApiBody, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { RolesEnum } from 'src/commom/enums/roles.enum';
+import { ApiResponse } from '@nestjs/swagger';
 import { CreateUserSE, DeleteUserSE, FindAllUsersSE, FindOneUserSE, LoginSE, UpdateUserSE } from './users_swagger_exemples';
 
 @Controller('users')
@@ -26,7 +25,7 @@ export class UsersController {
     return this.usersService.login(loginDto);
   }
 
-  @Roles('ADMIN', 'ORGANIZER')
+  @Public()
   @Post()
   @ApiResponse({
     status: 201,

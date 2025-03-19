@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsEnum, IsPhoneNumber, IsString, MaxLength } from "class-validator";
+import { IsEmail, IsEnum, IsPhoneNumber, IsString, Matches, MaxLength, MinLength } from "class-validator";
 import { RolesEnum } from "src/commom/enums/roles.enum";
 
 export class CreateUserDto {
@@ -8,6 +8,7 @@ export class CreateUserDto {
     name: string;
 
     @ApiProperty()
+    @Matches(/^\d{3}\d{3}\d{3}\d{2}$/, { message: 'o cpf deve seguir a máscara de 11 dígitos.' })
     @IsString()
     cpf: string;
 
@@ -16,9 +17,7 @@ export class CreateUserDto {
     @IsEmail()
     email: string;
 
-    @ApiProperty()
-    @IsPhoneNumber('BR')
-    @MaxLength(13)
+    @Matches(/^\d{2}\d{2}\d{9}$/, { message: 'O número de telefone deve possuir 13 digitos: 55 31 999999999)' })
     @IsString()
     phone: string;
 
