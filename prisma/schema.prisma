@@ -27,6 +27,7 @@ model tb_user {
   phone     String   @unique
   password  String
   role      Role
+  photo     String?
   createdAt DateTime @default(now())
 
   eventsOrganized tb_event[] @relation("OrganizerToEvent")

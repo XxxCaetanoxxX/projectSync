@@ -7,6 +7,9 @@ import { LoginDto } from './dto/login.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
 import * as jwt from 'jsonwebtoken';
+import * as path from 'path';
+import * as fs from 'node:fs/promises';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -91,7 +94,7 @@ export class UsersService {
 
   async findLoggedUser(id: number) {
     return await this.prisma.tb_user.findFirst({
-       where: { id }
+      where: { id }
     })
   }
 
@@ -113,16 +116,38 @@ export class UsersService {
     });
   }
 
-  // async removeMany(name: string) {
-  //   if(!name) throw new NotFoundException('Please, write a name!');
-  //    const result = await this.prisma.user.deleteMany({
-  //     where: {
-  //       name:{
-  //         contains: name
-  //       }
-  //     }
-  //   });
-  //   console.log(result);
-  //   return {message: `${result.count} users deleted!`};
+  async uploadAvatarImage(id: number, file: Express.Multer.File) {
+    try {
+
+      const user = await this.findOne({ id });
+      // const mimiType = file.mimetype;
+      const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
+      const fileName = `${user.name.toLowerCase().replace(' ', '')}_profile_photo.${fileExtension}`;
+      const fileLocale = path.resolve(process.cwd(), 'files', fileName);
+      await fs.writeFile(fileLocale, file.buffer);
+
+
+      const updatedUser = await this.prisma.tb_user.update({
+        where: { id: user.id },
+        data: {
+          photo: fileName
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          photo: true
+        }
+      })
+
+      return updatedUser
+    } catch (error) {
+      throw new Error(error);
+    }
+
+  }
+
+  // async uploadAvatarImages(id: number, files: Array<Express.Multer.File>) {
+
   // }
 }
