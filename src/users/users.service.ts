@@ -81,13 +81,16 @@ export class UsersService {
       throw new BadRequestException("You can only provide one parameter!");
     }
 
-    return this.prisma.tb_user.findFirst({
+    return await this.prisma.tb_user.findFirst({
       where: {
         OR: [
           { id },
           { cpf },
           { email }
         ]
+      },
+      include: {
+        photo: true
       }
     });
   }
@@ -120,17 +123,36 @@ export class UsersService {
     try {
 
       const user = await this.findOne({ id });
+
+      if (user.photo) {
+        await this.prisma.tb_user_image.delete({
+          where: {
+            id: user.photo.id
+          }
+        })
+      }
+
       // const mimiType = file.mimetype;
       const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
       const fileName = `${user.name.toLowerCase().replace(' ', '')}_profile_photo.${fileExtension}`;
       const fileLocale = path.resolve(process.cwd(), 'files', fileName);
       await fs.writeFile(fileLocale, file.buffer);
 
+      const photo = await this.prisma.tb_user_image.create({
+        data: {
+          userId: id,
+          path: `${process.env.BASE_URL}/files/${fileName}`
+        }
+      })
 
       const updatedUser = await this.prisma.tb_user.update({
         where: { id: user.id },
         data: {
-          photo: fileName
+          photo: {
+            connect: {
+              id: photo.id
+            }
+          }
         },
         select: {
           id: true,
