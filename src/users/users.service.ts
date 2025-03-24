@@ -66,6 +66,13 @@ export class UsersService {
         name: {
           contains: name
         },
+      },
+      include: {
+        image: {
+          select: {
+            path: true
+          }
+        }
       }
     });
   }
@@ -90,7 +97,7 @@ export class UsersService {
         ]
       },
       include: {
-        photo: true
+        image: true
       }
     });
   }
@@ -124,10 +131,10 @@ export class UsersService {
 
       const user = await this.findOne({ id });
 
-      if (user.photo) {
+      if (user.image) {
         await this.prisma.tb_user_image.delete({
           where: {
-            id: user.photo.id
+            id: user.image.id
           }
         })
       }
@@ -138,7 +145,7 @@ export class UsersService {
       const fileLocale = path.resolve(process.cwd(), 'files', fileName);
       await fs.writeFile(fileLocale, file.buffer);
 
-      const photo = await this.prisma.tb_user_image.create({
+      const image = await this.prisma.tb_user_image.create({
         data: {
           userId: id,
           path: `${process.env.BASE_URL}/files/${fileName}`
@@ -148,17 +155,18 @@ export class UsersService {
       const updatedUser = await this.prisma.tb_user.update({
         where: { id: user.id },
         data: {
-          photo: {
+          image: {
             connect: {
-              id: photo.id
+              id: image.id
             }
-          }
+          },
+          imageId: image.id
         },
         select: {
           id: true,
           name: true,
           email: true,
-          photo: true
+          image: true
         }
       })
 
