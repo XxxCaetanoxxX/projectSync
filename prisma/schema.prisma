@@ -28,7 +28,7 @@ model tb_user {
   password  String
   role      Role
   imageId   Int?           @unique
-  image     tb_user_image? @relation()
+  image     tb_user_image?
   createdAt DateTime       @default(now())
 
   eventsOrganized tb_event[] @relation("OrganizerToEvent")

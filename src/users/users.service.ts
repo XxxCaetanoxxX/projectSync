@@ -104,7 +104,14 @@ export class UsersService {
 
   async findLoggedUser(id: number) {
     return await this.prisma.tb_user.findFirst({
-      where: { id }
+      where: { id },
+      include: {
+        image: {
+          select: {
+            path: true
+          }
+        }
+      }
     })
   }
 
