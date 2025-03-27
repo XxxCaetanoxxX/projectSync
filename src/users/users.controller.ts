@@ -85,7 +85,7 @@ export class UsersController {
   }
 
 
-  @UseInterceptors(FileInterceptor('file')) //nome do campo form-data que vai estar o arquivo no postman
+  @UseInterceptors(FileInterceptor('userfile')) //nome do campo form-data que vai estar o arquivo no postman
   @Patch('upload/image')
   async updatePhoto(@UploadedFile(
     new ParseFilePipeBuilder().addFileTypeValidator({

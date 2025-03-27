@@ -29,7 +29,7 @@ async function bootstrap() {
   app.useGlobalFilters(new PrismaExceptionFilter());
 
   //serve os arquivos estaticos da pasta 'files'
-  app.use('/files', express.static(join(process.cwd(), 'files')));
+  app.use('/userfiles', express.static(join(process.cwd(), 'userfiles')));
 
   await app.listen(process.env.PORT ?? 3000, () => {
     console.log(`Server running on port ${process.env.PORT}`);

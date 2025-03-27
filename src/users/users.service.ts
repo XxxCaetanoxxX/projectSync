@@ -149,13 +149,13 @@ export class UsersService {
       // const mimiType = file.mimetype;
       const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
       const fileName = `${user.name.toLowerCase().replace(' ', '')}_profile_photo.${fileExtension}`;
-      const fileLocale = path.resolve(process.cwd(), 'files', fileName);
+      const fileLocale = path.resolve(process.cwd(), 'userfiles', fileName);
       await fs.writeFile(fileLocale, file.buffer);
 
       const image = await this.prisma.tb_user_image.create({
         data: {
           userId: id,
-          path: `${process.env.BASE_URL}/files/${fileName}`
+          path: `${process.env.BASE_URL}/userfiles/${fileName}`
         }
       })
 
