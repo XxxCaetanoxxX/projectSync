@@ -7,6 +7,9 @@ import { LoginDto } from './dto/login.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
 import * as jwt from 'jsonwebtoken';
+import * as path from 'path';
+import * as fs from 'node:fs/promises';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -63,6 +66,13 @@ export class UsersService {
         name: {
           contains: name
         },
+      },
+      include: {
+        image: {
+          select: {
+            path: true
+          }
+        }
       }
     });
   }
@@ -78,20 +88,30 @@ export class UsersService {
       throw new BadRequestException("You can only provide one parameter!");
     }
 
-    return this.prisma.tb_user.findFirst({
+    return await this.prisma.tb_user.findFirst({
       where: {
         OR: [
           { id },
           { cpf },
           { email }
         ]
+      },
+      include: {
+        image: true
       }
     });
   }
 
   async findLoggedUser(id: number) {
     return await this.prisma.tb_user.findFirst({
-       where: { id }
+      where: { id },
+      include: {
+        image: {
+          select: {
+            path: true
+          }
+        }
+      }
     })
   }
 
@@ -113,16 +133,58 @@ export class UsersService {
     });
   }
 
-  // async removeMany(name: string) {
-  //   if(!name) throw new NotFoundException('Please, write a name!');
-  //    const result = await this.prisma.user.deleteMany({
-  //     where: {
-  //       name:{
-  //         contains: name
-  //       }
-  //     }
-  //   });
-  //   console.log(result);
-  //   return {message: `${result.count} users deleted!`};
+  async uploadAvatarImage(id: number, file: Express.Multer.File) {
+    try {
+
+      const user = await this.findOne({ id });
+
+      if (user.image) {
+        await this.prisma.tb_user_image.delete({
+          where: {
+            id: user.image.id
+          }
+        })
+      }
+
+      // const mimiType = file.mimetype;
+      const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
+      const fileName = `${user.name.toLowerCase().replace(' ', '')}_profile_photo.${fileExtension}`;
+      const fileLocale = path.resolve(process.cwd(), 'userfiles', fileName);
+      await fs.writeFile(fileLocale, file.buffer);
+
+      const image = await this.prisma.tb_user_image.create({
+        data: {
+          userId: id,
+          path: `${process.env.BASE_URL}/userfiles/${fileName}`
+        }
+      })
+
+      const updatedUser = await this.prisma.tb_user.update({
+        where: { id: user.id },
+        data: {
+          image: {
+            connect: {
+              id: image.id
+            }
+          },
+          imageId: image.id
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true
+        }
+      })
+
+      return updatedUser
+    } catch (error) {
+      throw new Error(error);
+    }
+
+  }
+
+  // async uploadAvatarImages(id: number, files: Array<Express.Multer.File>) {
+
   // }
 }

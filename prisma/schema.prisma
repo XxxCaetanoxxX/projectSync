@@ -20,18 +20,27 @@ enum Role {
 }
 
 model tb_user {
-  id        Int      @id @default(autoincrement())
+  id        Int            @id @default(autoincrement())
   name      String
-  cpf       String   @unique
-  email     String   @unique
-  phone     String   @unique
+  cpf       String         @unique
+  email     String         @unique
+  phone     String         @unique
   password  String
   role      Role
-  createdAt DateTime @default(now())
+  imageId   Int?           @unique
+  image     tb_user_image?
+  createdAt DateTime       @default(now())
 
   eventsOrganized tb_event[] @relation("OrganizerToEvent")
 
   eventsParticipated tb_event_participant[]
+}
+
+model tb_user_image {
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique
+  user   tb_user @relation(fields: [userId], references: [id])
+  path   String
 }
 
 model tb_party_house {

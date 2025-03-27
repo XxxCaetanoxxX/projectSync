@@ -1,10 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Req, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from 'src/commom/decorators/public_decorator.decorator';
 import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import * as path from 'path';
+import * as fs from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
 import { ApiResponse } from '@nestjs/swagger';
@@ -80,6 +84,45 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
+
+  @UseInterceptors(FileInterceptor('userfile')) //nome do campo form-data que vai estar o arquivo no postman
+  @Patch('upload/image')
+  async updatePhoto(@UploadedFile(
+    new ParseFilePipeBuilder().addFileTypeValidator({
+      fileType: /jpeg|jpg|png/g,
+    }).addMaxSizeValidator({
+      maxSize: 5 * (1024 * 1024) //tamanho de 5 mb
+    }).build({
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+    })
+  ) file: Express.Multer.File, @Req() req: any) {
+    return await this.usersService.uploadAvatarImage(req.user.id, file);
+  }
+
+  // @Public()
+  // @UseInterceptors(FilesInterceptor('files'))
+  // @Patch('images/:id')
+  // async updatePhotos(@Param('id', ParseIntPipe) id: number, @UploadedFiles(
+  //   new ParseFilePipeBuilder().addFileTypeValidator({
+  //     fileType: /jpeg|jpg|png/g,
+  //   }).addMaxSizeValidator({
+  //     maxSize: 5 * (1024 * 1024)
+  //   }).build({
+  //     errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+  //   })
+  // ) files: Array<Express.Multer.File>) {
+  //   files.forEach(async file => {
+  //     //const mimiType = file.mimetype;
+  //     const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
+  //     const fileName = `${randomUUID()}.${fileExtension}`;
+  //     const fileLocale = path.resolve(process.cwd(), 'files', fileName);
+
+  //     await fs.writeFile(fileLocale, file.buffer);
+  //   });
+  //   return true
+  // }
+
+
   @Roles('ADMIN', 'ORGANIZER')
   @Delete(':id')
   @ApiResponse({
@@ -90,10 +133,4 @@ export class UsersController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);
   }
-
-  // @Post('/deletemany')
-  // removeMany(@Query('name') name: string) {
-  //   console.log(name);
-  //   return this.usersService.removeMany(name);
-  // }
 }

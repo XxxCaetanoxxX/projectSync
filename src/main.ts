@@ -1,9 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { config } from 'dotenv'
+import { config } from 'dotenv';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
+import * as express from 'express';
+import { join } from 'path';
+
 config();
 
 async function bootstrap() {
@@ -24,6 +27,9 @@ async function bootstrap() {
   }))
   //usa filtro global
   app.useGlobalFilters(new PrismaExceptionFilter());
+
+  //serve os arquivos estaticos da pasta 'files'
+  app.use('/userfiles', express.static(join(process.cwd(), 'userfiles')));
 
   await app.listen(process.env.PORT ?? 3000, () => {
     console.log(`Server running on port ${process.env.PORT}`);
