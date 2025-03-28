@@ -4,6 +4,11 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { FindAllEventsDto } from './dto/find-all-events.dto';
 import { PdfService } from '../pdf/pdf.service';
+import * as path from 'path';
+import * as fs from 'node:fs/promises';
+import { randomUUID } from 'crypto';
+
+
 
 @Injectable()
 export class EventService {
@@ -73,6 +78,17 @@ export class EventService {
       buffer: pdfBuffer,
       name: `${event.name}.pdf`,
     }
+  }
+
+  async uploadPhotos(eventId: number, files: Array<Express.Multer.File>) {
+    files.forEach(async file => {
+      //const mimiType = file.mimetype;
+      const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
+      const fileName = `${randomUUID()}.${fileExtension}`;
+      const fileLocale = path.resolve(process.cwd(), 'eventfiles', fileName);
+
+      return await fs.writeFile(fileLocale, file.buffer);
+    });
   }
 
   async update(id: number, { ...updateEventDto }: UpdateEventDto) {

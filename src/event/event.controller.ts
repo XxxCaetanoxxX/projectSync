@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, Res, UseInterceptors, ParseFilePipeBuilder, HttpStatus, UploadedFiles } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -7,6 +7,12 @@ import { responseFile } from 'src/commom/utils/response.file';
 import { Response } from 'express';
 import { ApiResponse } from '@nestjs/swagger';
 import { CreateEventSE, DeleteEventSE, FindAllEventsSE, FindOneEventSE, UpdateEventSE } from './event_swagger_exemples';
+import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
+import * as path from 'path';
+import * as fs from 'node:fs/promises';
+import { randomUUID } from 'crypto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+
 
 @Controller('events')
 export class EventController {
@@ -60,6 +66,21 @@ export class EventController {
   })
   update(@Param('id', ParseIntPipe) id: number, @Body() updateEventDto: UpdateEventDto) {
     return this.eventService.update(id, updateEventDto);
+  }
+
+  @Roles('ADMIN', 'ORGANIZER')
+  @UseInterceptors(FilesInterceptor('eventfiles'))
+  @Patch('upload/images/:eventId')
+  async updatePhotos(@Param('eventId', ParseIntPipe) eventId: number, @UploadedFiles(
+    new ParseFilePipeBuilder().addFileTypeValidator({
+      fileType: /jpeg|jpg|png/g,
+    }).addMaxSizeValidator({
+      maxSize: 5 * (1024 * 1024)
+    }).build({
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+    })
+  ) files: Array<Express.Multer.File>) {
+    return await this.eventService.uploadPhotos(eventId, files);
   }
 
   @Delete(':id')
