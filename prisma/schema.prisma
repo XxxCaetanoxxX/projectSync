@@ -61,8 +61,17 @@ model tb_event {
 
   participants tb_event_participant[]
 
+  images tb_event_image[]
+
   partyHouseId Int
   party_house  tb_party_house @relation(fields: [partyHouseId], references: [id], onDelete: Cascade)
+}
+
+model tb_event_image {
+  id      Int      @id @default(autoincrement())
+  eventId Int
+  event   tb_event @relation(fields: [eventId], references: [id])
+  path    String
 }
 
 model tb_artist {

@@ -43,14 +43,21 @@ export class EventService {
             }
           }
         },
-        party_house: true
-      }
+        party_house: true,
+        images: {
+          select: {
+            id: true,
+            path: true
+          }
+        }
+      },
     });
 
     return {
       id: event.id,
       name: event.name,
-      artists: event.artists.map(a => a.artist)
+      artists: event.artists.map(a => a.artist),
+      images: event.images
     }
   }
 
@@ -81,14 +88,27 @@ export class EventService {
   }
 
   async uploadPhotos(eventId: number, files: Array<Express.Multer.File>) {
+
+    const event = await this.findOne(eventId);
+
+
     files.forEach(async file => {
       //const mimiType = file.mimetype;
       const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
       const fileName = `${randomUUID()}.${fileExtension}`;
       const fileLocale = path.resolve(process.cwd(), 'eventfiles', fileName);
 
+      await this.prisma.tb_event_image.create({
+        data: {
+          eventId: event.id,
+          path: `${process.env.BASE_URL}/eventfiles/${fileName}`
+        }
+      })
+
       return await fs.writeFile(fileLocale, file.buffer);
     });
+
+    return { message: "Images uploaded successfully" }
   }
 
   async update(id: number, { ...updateEventDto }: UpdateEventDto) {
