@@ -1,4 +1,4 @@
-import { Injectable, Res } from '@nestjs/common';
+import { BadRequestException, Injectable, Res } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -25,7 +25,31 @@ export class EventService {
         name: {
           contains: name
         }
-      }
+      },
+      omit: {
+        organizerId: true,
+        partyHouseId: true
+      },
+      include: {
+        party_house: {
+          select: {
+            name: true,
+            address: true
+          }
+        },
+        images: {
+          select: {
+            id: true,
+            path: true
+          }
+        },
+        organizer: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
     });
   }
 
@@ -43,19 +67,24 @@ export class EventService {
             }
           }
         },
-        party_house: true,
+        party_house: {
+          select: {
+            name: true
+          }
+        },
         images: {
           select: {
             id: true,
             path: true
           }
-        }
+        },
       },
     });
 
     return {
       id: event.id,
       name: event.name,
+      party_house: event.party_house.name,
       artists: event.artists.map(a => a.artist),
       images: event.images
     }
@@ -91,6 +120,11 @@ export class EventService {
 
     const event = await this.findOne(eventId);
 
+    if (event.images.length >= 5) {
+      throw new BadRequestException("The event already has 5 images!");
+    } else if (files.length + event.images.length > 5) {
+      throw new BadRequestException("The event can has a maximum of 5 images!");
+    }
 
     files.forEach(async file => {
       //const mimiType = file.mimetype;

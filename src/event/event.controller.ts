@@ -8,9 +8,6 @@ import { Response } from 'express';
 import { ApiResponse } from '@nestjs/swagger';
 import { CreateEventSE, DeleteEventSE, FindAllEventsSE, FindOneEventSE, UpdateEventSE } from './event_swagger_exemples';
 import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
-import * as path from 'path';
-import * as fs from 'node:fs/promises';
-import { randomUUID } from 'crypto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 
