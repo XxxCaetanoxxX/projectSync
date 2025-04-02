@@ -145,6 +145,11 @@ export class EventService {
     return { message: "Images uploaded successfully" }
   }
 
+  async deleteImage(imageId: number) {
+    await this.prisma.tb_event_image.delete({ where: { id: imageId } });
+    return { message: "Image deleted successfully!" }
+  }
+
   async update(id: number, { ...updateEventDto }: UpdateEventDto) {
     return await this.prisma.tb_event.update({ where: { id }, data: { ...updateEventDto } });
   }

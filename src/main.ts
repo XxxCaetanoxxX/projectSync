@@ -25,6 +25,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true
   }))
+
   //usa filtro global
   app.useGlobalFilters(new PrismaExceptionFilter());
 

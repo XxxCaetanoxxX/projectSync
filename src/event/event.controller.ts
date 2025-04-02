@@ -80,13 +80,20 @@ export class EventController {
     return await this.eventService.uploadPhotos(eventId, files);
   }
 
+  @Roles('ADMIN', 'ORGANIZER')
   @Delete(':id')
   @ApiResponse({
     status: 200,
-    description: 'Update the event.',
+    description: 'Delete the event.',
     example: DeleteEventSE
   })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.eventService.remove(id);
+  }
+
+  @Roles('ADMIN', 'ORGANIZER')
+  @Delete('images/:imageId')
+  deleteImage(@Param('imageId', ParseIntPipe) imageId: number) {
+    return this.eventService.deleteImage(imageId);
   }
 }

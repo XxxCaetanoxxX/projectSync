@@ -183,8 +183,4 @@ export class UsersService {
     }
 
   }
-
-  // async uploadAvatarImages(id: number, files: Array<Express.Multer.File>) {
-
-  // }
 }
