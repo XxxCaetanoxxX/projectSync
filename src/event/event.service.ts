@@ -7,6 +7,7 @@ import { PdfService } from '../pdf/pdf.service';
 import * as path from 'path';
 import * as fs from 'node:fs/promises';
 import { randomUUID } from 'crypto';
+import { async } from 'rxjs';
 
 
 
@@ -126,8 +127,8 @@ export class EventService {
       throw new BadRequestException("The event can has a maximum of 5 images!");
     }
 
-    files.forEach(async file => {
-      //const mimiType = file.mimetype;
+
+    await Promise.all(files.map(async file => {
       const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
       const fileName = `${randomUUID()}.${fileExtension}`;
       const fileLocale = path.resolve(process.cwd(), 'eventfiles', fileName);
@@ -139,8 +140,8 @@ export class EventService {
         }
       })
 
-      return await fs.writeFile(fileLocale, file.buffer);
-    });
+      await fs.writeFile(fileLocale, file.buffer);
+    }))
 
     return { message: "Images uploaded successfully" }
   }
