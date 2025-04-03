@@ -1,9 +1,15 @@
-import { Injectable, Res } from '@nestjs/common';
+import { BadRequestException, Injectable, Res } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { FindAllEventsDto } from './dto/find-all-events.dto';
 import { PdfService } from '../pdf/pdf.service';
+import * as path from 'path';
+import * as fs from 'node:fs/promises';
+import { randomUUID } from 'crypto';
+import { async } from 'rxjs';
+
+
 
 @Injectable()
 export class EventService {
@@ -20,7 +26,31 @@ export class EventService {
         name: {
           contains: name
         }
-      }
+      },
+      omit: {
+        organizerId: true,
+        partyHouseId: true
+      },
+      include: {
+        party_house: {
+          select: {
+            name: true,
+            address: true
+          }
+        },
+        images: {
+          select: {
+            id: true,
+            path: true
+          }
+        },
+        organizer: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
     });
   }
 
@@ -38,14 +68,26 @@ export class EventService {
             }
           }
         },
-        party_house: true
-      }
+        party_house: {
+          select: {
+            name: true
+          }
+        },
+        images: {
+          select: {
+            id: true,
+            path: true
+          }
+        },
+      },
     });
 
     return {
       id: event.id,
       name: event.name,
-      artists: event.artists.map(a => a.artist)
+      party_house: event.party_house.name,
+      artists: event.artists.map(a => a.artist),
+      images: event.images
     }
   }
 
@@ -73,6 +115,40 @@ export class EventService {
       buffer: pdfBuffer,
       name: `${event.name}.pdf`,
     }
+  }
+
+  async uploadPhotos(eventId: number, files: Array<Express.Multer.File>) {
+
+    const event = await this.findOne(eventId);
+
+    if (event.images.length >= 5) {
+      throw new BadRequestException("The event already has 5 images!");
+    } else if (files.length + event.images.length > 5) {
+      throw new BadRequestException("The event can has a maximum of 5 images!");
+    }
+
+
+    await Promise.all(files.map(async file => {
+      const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
+      const fileName = `${randomUUID()}.${fileExtension}`;
+      const fileLocale = path.resolve(process.cwd(), 'eventfiles', fileName);
+
+      await this.prisma.tb_event_image.create({
+        data: {
+          eventId: event.id,
+          path: `${process.env.BASE_URL}/eventfiles/${fileName}`
+        }
+      })
+
+      await fs.writeFile(fileLocale, file.buffer);
+    }))
+
+    return { message: "Images uploaded successfully" }
+  }
+
+  async deleteImage(imageId: number) {
+    await this.prisma.tb_event_image.delete({ where: { id: imageId } });
+    return { message: "Image deleted successfully!" }
   }
 
   async update(id: number, { ...updateEventDto }: UpdateEventDto) {

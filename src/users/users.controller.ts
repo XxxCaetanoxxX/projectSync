@@ -99,28 +99,28 @@ export class UsersController {
     return await this.usersService.uploadAvatarImage(req.user.id, file);
   }
 
-  // @Public()
-  // @UseInterceptors(FilesInterceptor('files'))
-  // @Patch('images/:id')
-  // async updatePhotos(@Param('id', ParseIntPipe) id: number, @UploadedFiles(
-  //   new ParseFilePipeBuilder().addFileTypeValidator({
-  //     fileType: /jpeg|jpg|png/g,
-  //   }).addMaxSizeValidator({
-  //     maxSize: 5 * (1024 * 1024)
-  //   }).build({
-  //     errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
-  //   })
-  // ) files: Array<Express.Multer.File>) {
-  //   files.forEach(async file => {
-  //     //const mimiType = file.mimetype;
-  //     const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
-  //     const fileName = `${randomUUID()}.${fileExtension}`;
-  //     const fileLocale = path.resolve(process.cwd(), 'files', fileName);
+  @Roles('ADMIN', 'ORGANIZER')
+  @UseInterceptors(FilesInterceptor('eventfiles')) // nome do campo no postman
+  @Patch('upload/images/:eventId')
+  async updatePhotos(@Param('eventId', ParseIntPipe) eventId: number, @UploadedFiles(
+    new ParseFilePipeBuilder().addFileTypeValidator({
+      fileType: /jpeg|jpg|png/g,
+    }).addMaxSizeValidator({
+      maxSize: 5 * (1024 * 1024)
+    }).build({
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+    })
+  ) files: Array<Express.Multer.File>) {
+    files.forEach(async file => {
+      //const mimiType = file.mimetype;
+      const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
+      const fileName = `${randomUUID()}.${fileExtension}`;
+      const fileLocale = path.resolve(process.cwd(), 'eventfiles', fileName);
 
-  //     await fs.writeFile(fileLocale, file.buffer);
-  //   });
-  //   return true
-  // }
+      await fs.writeFile(fileLocale, file.buffer);
+    });
+    return true
+  }
 
 
   @Roles('ADMIN', 'ORGANIZER')

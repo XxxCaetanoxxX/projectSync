@@ -25,11 +25,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true
   }))
+
   //usa filtro global
   app.useGlobalFilters(new PrismaExceptionFilter());
 
-  //serve os arquivos estaticos da pasta 'files'
+  //serve os arquivos estaticos da pasta 'userfiles e eventfiles'
   app.use('/userfiles', express.static(join(process.cwd(), 'userfiles')));
+  app.use('/eventfiles', express.static(join(process.cwd(), 'eventfiles')));
 
   await app.listen(process.env.PORT ?? 3000, () => {
     console.log(`Server running on port ${process.env.PORT}`);
