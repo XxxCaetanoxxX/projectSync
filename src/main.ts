@@ -17,7 +17,7 @@ async function bootstrap() {
     .setDescription('The project event API description')
     .setVersion('1.0')
     .build();
-
+  //teste
   const documentFactory = () => SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, documentFactory);
 
