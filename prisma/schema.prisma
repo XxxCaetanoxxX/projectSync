@@ -70,7 +70,7 @@ model tb_event {
 model tb_event_image {
   id      Int      @id @default(autoincrement())
   eventId Int
-  event   tb_event @relation(fields: [eventId], references: [id])
+  event   tb_event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   path    String
 }
 
