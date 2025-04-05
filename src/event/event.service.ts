@@ -7,8 +7,6 @@ import { PdfService } from '../pdf/pdf.service';
 import * as path from 'path';
 import * as fs from 'node:fs/promises';
 import { randomUUID } from 'crypto';
-import { async } from 'rxjs';
-
 
 
 @Injectable()
