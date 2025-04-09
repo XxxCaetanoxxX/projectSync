@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SupabaseClient, createClient } from '@supabase/supabase-js';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class BucketSupabaseService {
@@ -44,5 +45,34 @@ export class BucketSupabaseService {
       .data.publicUrl;
 
     return publicUrl;
+  }
+
+  async uploadEventImages(files: Array<Express.Multer.File>, eventId: number) {
+    const urls = await Promise.all(files.map(async file => {
+      const fileExtension = file.originalname.toLowerCase().substring(1);
+      const fileName = `${randomUUID()}.${fileExtension}`;
+
+      const { data, error } = await this.supabase
+        .storage
+        .from('event-images')
+        .upload(fileName, file.buffer, {
+          contentType: file.mimetype,
+          upsert: true
+        })
+
+      if (error) {
+        throw new Error(`Error uploading file: ${error.message}`);
+      }
+
+      const publicUrl = this.supabase
+        .storage
+        .from('event-images')
+        .getPublicUrl(fileName)
+        .data.publicUrl;
+
+      return publicUrl
+    }))
+
+    return urls
   }
 }

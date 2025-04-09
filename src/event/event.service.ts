@@ -7,11 +7,12 @@ import { PdfService } from '../pdf/pdf.service';
 import * as path from 'path';
 import * as fs from 'node:fs/promises';
 import { randomUUID } from 'crypto';
+import { BucketSupabaseService } from 'src/bucket_supabase/bucket_supabase.service';
 
 
 @Injectable()
 export class EventService {
-  constructor(private readonly prisma: PrismaService, private readonly pdfService: PdfService) { }
+  constructor(private readonly prisma: PrismaService, private readonly pdfService: PdfService, private readonly bucketSupabaseService: BucketSupabaseService) { }
   async create({ ...createEventDto }: CreateEventDto) {
     const event = await this.prisma.tb_event.create({ data: { ...createEventDto } });
     return event
@@ -115,7 +116,7 @@ export class EventService {
     }
   }
 
-  async uploadPhotos(eventId: number, files: Array<Express.Multer.File>) {
+  async uploadImages(eventId: number, files: Array<Express.Multer.File>) {
 
     const event = await this.findOne(eventId);
 
@@ -125,21 +126,29 @@ export class EventService {
       throw new BadRequestException("The event can has a maximum of 5 images!");
     }
 
+    const urls = await this.bucketSupabaseService.uploadEventImages(files, event.id);
 
-    await Promise.all(files.map(async file => {
-      const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
-      const fileName = `${randomUUID()}.${fileExtension}`;
-      const fileLocale = path.resolve(process.cwd(), 'eventfiles', fileName);
+    await this.prisma.tb_event_image.createMany({
+      data: urls.map(url => ({
+        eventId: event.id,
+        path: url
+      }))
+    })
 
-      await this.prisma.tb_event_image.create({
-        data: {
-          eventId: event.id,
-          path: `${process.env.BASE_URL}/eventfiles/${fileName}`
-        }
-      })
+    // await Promise.all(files.map(async file => {
+    //   const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
+    //   const fileName = `${randomUUID()}.${fileExtension}`;
+    //   const fileLocale = path.resolve(process.cwd(), 'eventfiles', fileName);
 
-      await fs.writeFile(fileLocale, file.buffer);
-    }))
+    //   await this.prisma.tb_event_image.create({
+    //     data: {
+    //       eventId: event.id,
+    //       path: `${process.env.BASE_URL}/eventfiles/${fileName}`
+    //     }
+    //   })
+
+    //   await fs.writeFile(fileLocale, file.buffer);
+    // }))
 
     return { message: "Images uploaded successfully" }
   }

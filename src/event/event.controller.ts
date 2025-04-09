@@ -77,7 +77,7 @@ export class EventController {
       errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
     })
   ) files: Array<Express.Multer.File>) {
-    return await this.eventService.uploadPhotos(eventId, files);
+    return await this.eventService.uploadImages(eventId, files);
   }
 
   @Roles('ADMIN', 'ORGANIZER')
