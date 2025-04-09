@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -9,16 +9,15 @@ import { FindOneUserDto } from './dto/find-one-user.dto';
 import * as jwt from 'jsonwebtoken';
 import * as path from 'path';
 import * as fs from 'node:fs/promises';
-import { randomUUID } from 'crypto';
+import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly hashingService: HashingService
+    private readonly hashingService: HashingService,
+    private readonly bucketSupabaseService: BucketSupabaseService
   ) { }
-
-
 
   async login(loginDto: LoginDto) {
     const { email, phone, password } = loginDto;
@@ -70,6 +69,7 @@ export class UsersService {
       include: {
         image: {
           select: {
+            id: true,
             path: true
           }
         }
@@ -96,8 +96,16 @@ export class UsersService {
           { email }
         ]
       },
+      omit: {
+        imageId: true
+      },
       include: {
-        image: true
+        image: {
+          select: {
+            id: true,
+            path: true
+          }
+        }
       }
     });
   }
@@ -146,27 +154,18 @@ export class UsersService {
         })
       }
 
-      // const mimiType = file.mimetype;
-      const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
-      const fileName = `${user.name.toLowerCase().replace(' ', '')}_profile_photo.${fileExtension}`;
-      const fileLocale = path.resolve(process.cwd(), 'userfiles', fileName);
-      await fs.writeFile(fileLocale, file.buffer);
+      const path = await this.bucketSupabaseService.uploadUserImage(file, user);
 
       const image = await this.prisma.tb_user_image.create({
         data: {
           userId: id,
-          path: `${process.env.BASE_URL}/userfiles/${fileName}`
+          path
         }
       })
 
       const updatedUser = await this.prisma.tb_user.update({
         where: { id: user.id },
         data: {
-          image: {
-            connect: {
-              id: image.id
-            }
-          },
           imageId: image.id
         },
         select: {
@@ -179,7 +178,7 @@ export class UsersService {
 
       return updatedUser
     } catch (error) {
-      throw new Error(error);
+      throw new InternalServerErrorException("Error to upload image!");
     }
 
   }
