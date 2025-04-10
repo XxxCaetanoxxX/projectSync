@@ -14,11 +14,8 @@ export class BucketSupabaseService {
     //remove a imagem antiga do storage
     if (user.image?.path) {
       const urlParts = user.image.path.split('/');
-      const filename = urlParts[urlParts.length - 1];
-      await this.supabase
-        .storage
-        .from('user-images')
-        .remove([filename]);
+      const fileName = urlParts[urlParts.length - 1];
+      await this.deleteUserImage(fileName);
     }
 
 
@@ -74,5 +71,20 @@ export class BucketSupabaseService {
     }))
 
     return urls
+  }
+
+  async deleteUserImage(fileName: string) {
+    await this.supabase
+      .storage
+      .from('user-images')
+      .remove([fileName]);
+  }
+
+  async deleteImageEvent(filePath: string) {
+    const fileName = filePath.split('/').pop();
+    await this.supabase
+      .storage
+      .from('event-images')
+      .remove([fileName]);
   }
 }

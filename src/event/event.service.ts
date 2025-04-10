@@ -139,6 +139,11 @@ export class EventService {
   }
 
   async deleteImage(imageId: number) {
+    const image = await this.prisma.tb_event_image.findFirst({
+      where: { id: imageId },
+      select: { path: true }
+    })
+    await this.bucketSupabaseService.deleteImageEvent(image.path);
     await this.prisma.tb_event_image.delete({ where: { id: imageId } });
     return { message: "Image deleted successfully!" }
   }
