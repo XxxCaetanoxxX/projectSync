@@ -139,7 +139,7 @@ export class EventService {
   }
 
   async deleteImage(imageId: number) {
-    const image = await this.prisma.tb_event_image.findFirst({
+    const image = await this.prisma.tb_event_image.findFirstOrThrow({
       where: { id: imageId },
       select: { path: true }
     })
