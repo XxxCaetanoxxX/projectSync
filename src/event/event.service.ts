@@ -126,7 +126,7 @@ export class EventService {
       throw new BadRequestException("The event can has a maximum of 5 images!");
     }
 
-    const urls = await this.bucketSupabaseService.uploadEventImages(files, event.id);
+    const urls = await this.bucketSupabaseService.uploadEventImages(files);
 
     await this.prisma.tb_event_image.createMany({
       data: urls.map(url => ({

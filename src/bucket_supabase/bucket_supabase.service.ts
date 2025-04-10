@@ -44,7 +44,7 @@ export class BucketSupabaseService {
     return publicUrl;
   }
 
-  async uploadEventImages(files: Array<Express.Multer.File>, eventId: number) {
+  async uploadEventImages(files: Array<Express.Multer.File>) {
     const urls = await Promise.all(files.map(async file => {
       const fileExtension = file.originalname.toLowerCase().substring(1);
       const fileName = `${randomUUID()}.${fileExtension}`;
