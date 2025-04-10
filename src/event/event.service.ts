@@ -135,21 +135,6 @@ export class EventService {
       }))
     })
 
-    // await Promise.all(files.map(async file => {
-    //   const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
-    //   const fileName = `${randomUUID()}.${fileExtension}`;
-    //   const fileLocale = path.resolve(process.cwd(), 'eventfiles', fileName);
-
-    //   await this.prisma.tb_event_image.create({
-    //     data: {
-    //       eventId: event.id,
-    //       path: `${process.env.BASE_URL}/eventfiles/${fileName}`
-    //     }
-    //   })
-
-    //   await fs.writeFile(fileLocale, file.buffer);
-    // }))
-
     return { message: "Images uploaded successfully" }
   }
 
