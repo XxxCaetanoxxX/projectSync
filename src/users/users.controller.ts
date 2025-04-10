@@ -99,29 +99,16 @@ export class UsersController {
     return await this.usersService.uploadAvatarImage(req.user.id, file);
   }
 
-  @Roles('ADMIN', 'ORGANIZER')
-  @UseInterceptors(FilesInterceptor('eventfiles')) // nome do campo no postman
-  @Patch('upload/images/:eventId')
-  async updatePhotos(@Param('eventId', ParseIntPipe) eventId: number, @UploadedFiles(
-    new ParseFilePipeBuilder().addFileTypeValidator({
-      fileType: /jpeg|jpg|png/g,
-    }).addMaxSizeValidator({
-      maxSize: 5 * (1024 * 1024)
-    }).build({
-      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
-    })
-  ) files: Array<Express.Multer.File>) {
-    files.forEach(async file => {
-      //const mimiType = file.mimetype;
-      const fileExtension = path.extname(file.originalname).toLowerCase().substring(1);
-      const fileName = `${randomUUID()}.${fileExtension}`;
-      const fileLocale = path.resolve(process.cwd(), 'eventfiles', fileName);
-
-      await fs.writeFile(fileLocale, file.buffer);
-    });
-    return true
+  @Post('/buy/:eventId')
+  buyTicket(@Param('eventId', ParseIntPipe) eventId: number, @Req() req: any) {
+    return this.usersService.buyTicket(eventId, req.user.id);
   }
 
+  @Roles('ADMIN', 'ORGANIZER')
+  @Get('/event/:eventId')
+  getEventParticipants(@Param('eventId', ParseIntPipe) eventId: number) {
+    return this.usersService.getEventParticipants(eventId);
+  }
 
   @Roles('ADMIN', 'ORGANIZER')
   @Delete(':id')
