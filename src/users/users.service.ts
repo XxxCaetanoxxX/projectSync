@@ -182,4 +182,27 @@ export class UsersService {
     }
 
   }
+
+  async buyTicket(eventId: number, userId: number) {
+    await this.prisma.tb_event_participant.create({ data: { eventId, userId } });
+    return { message: "Ticket bought successfully!" }
+  }
+
+  async getEventParticipants(eventId: number) {
+    const users = await this.prisma.tb_event_participant.findMany({
+      where: { eventId },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          }
+        }
+      }
+    });
+    return {
+      message: "Event participants found successfully!",
+      data: users
+    }
+  }
 }
