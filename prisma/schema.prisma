@@ -20,6 +20,39 @@ model tb_user {
   eventsOrganized    tb_event[]             @relation("OrganizerToEvent")
   eventsParticipated tb_event_participant[]
   image              tb_user_image?
+  tb_ticket          tb_ticket[]
+}
+
+model tb_ticket_type {
+  id       Int      @id @default(autoincrement())
+  name     String
+  price    Float
+  quantity Int
+  eventId  Int
+  event    tb_event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  tickets tb_ticket[]
+}
+
+model tb_ticket {
+  id           Int            @id @default(autoincrement())
+  ticketTypeId Int
+  userId       Int
+  ticket_type  tb_ticket_type @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  user         tb_user        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime       @default(now())
+
+  @@unique([ticketTypeId, userId])
+}
+
+model tb_event_participant {
+  id      Int      @id @default(autoincrement())
+  userId  Int
+  eventId Int
+  event   tb_event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user    tb_user  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
 }
 
 model tb_user_image {
@@ -41,11 +74,12 @@ model tb_event {
   name         String
   organizerId  Int
   partyHouseId Int
-  artists      tb_artist_event[]
+  artists      tb_artist_on_event[]
   organizer    tb_user                @relation("OrganizerToEvent", fields: [organizerId], references: [id])
   party_house  tb_party_house         @relation(fields: [partyHouseId], references: [id], onDelete: Cascade)
   images       tb_event_image[]
   participants tb_event_participant[]
+  ticketTypes  tb_ticket_type[]
 }
 
 model tb_event_image {
@@ -56,12 +90,12 @@ model tb_event_image {
 }
 
 model tb_artist {
-  id     Int               @id @default(autoincrement())
+  id     Int                  @id @default(autoincrement())
   name   String
-  events tb_artist_event[]
+  events tb_artist_on_event[]
 }
 
-model tb_artist_event {
+model tb_artist_on_event {
   id       Int       @id @default(autoincrement())
   artistId Int
   eventId  Int
@@ -69,16 +103,6 @@ model tb_artist_event {
   event    tb_event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([artistId, eventId])
-}
-
-model tb_event_participant {
-  id      Int      @id @default(autoincrement())
-  userId  Int
-  eventId Int
-  event   tb_event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user    tb_user  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, eventId])
 }
 
 enum Role {

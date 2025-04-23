@@ -97,35 +97,35 @@ async function main() {
         }
     })
 
-    await prisma.tb_artist_event.create({
+    await prisma.tb_artist_on_event.create({
         data: {
             artistId: 1,
             eventId: 1
         }
     })
 
-    await prisma.tb_artist_event.create({
+    await prisma.tb_artist_on_event.create({
         data: {
             artistId: 2,
             eventId: 1
         }
     })
 
-    await prisma.tb_artist_event.create({
+    await prisma.tb_artist_on_event.create({
         data: {
             artistId: 3,
             eventId: 1
         }
     })
 
-    await prisma.tb_artist_event.create({
+    await prisma.tb_artist_on_event.create({
         data: {
             artistId: 4,
             eventId: 2
         }
     })
 
-    await prisma.tb_artist_event.create({
+    await prisma.tb_artist_on_event.create({
         data: {
             artistId: 5,
             eventId: 2

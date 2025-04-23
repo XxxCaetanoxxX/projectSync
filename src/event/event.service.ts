@@ -4,9 +4,6 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { FindAllEventsDto } from './dto/find-all-events.dto';
 import { PdfService } from '../pdf/pdf.service';
-import * as path from 'path';
-import * as fs from 'node:fs/promises';
-import { randomUUID } from 'crypto';
 import { BucketSupabaseService } from 'src/bucket_supabase/bucket_supabase.service';
 
 

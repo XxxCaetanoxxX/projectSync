@@ -7,8 +7,6 @@ import { LoginDto } from './dto/login.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
 import * as jwt from 'jsonwebtoken';
-import * as path from 'path';
-import * as fs from 'node:fs/promises';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 
 @Injectable()
@@ -183,11 +181,13 @@ export class UsersService {
 
   }
 
+  //TODO: remover
   async buyTicket(eventId: number, userId: number) {
     await this.prisma.tb_event_participant.create({ data: { eventId, userId } });
     return { message: "Ticket bought successfully!" }
   }
 
+  //TODO: refazer
   async getEventParticipants(eventId: number) {
     const users = await this.prisma.tb_event_participant.findMany({
       where: { eventId },
