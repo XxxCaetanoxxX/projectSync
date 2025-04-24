@@ -1,6 +1,6 @@
 import { IsNumber } from "class-validator"
 
-export class CreateTicketDto {
+export class BuyTicketDto {
     @IsNumber()
     ticketTypeId: number
     @IsNumber()
