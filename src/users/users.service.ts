@@ -178,31 +178,31 @@ export class UsersService {
     } catch (error) {
       throw new InternalServerErrorException("Error to upload image!");
     }
-
   }
 
-  //TODO: remover
-  async buyTicket(eventId: number, userId: number) {
-    await this.prisma.tb_event_participant.create({ data: { eventId, userId } });
-    return { message: "Ticket bought successfully!" }
-  }
-
-  //TODO: refazer
   async getEventParticipants(eventId: number) {
-    const users = await this.prisma.tb_event_participant.findMany({
-      where: { eventId },
+    const tickets = await this.prisma.tb_ticket.findMany({
+      where: {
+        ticket_type: {
+          eventId
+        },
+      },
       include: {
         user: {
           select: {
+            id: true,
             name: true,
-            email: true,
+            email: true
           }
         }
       }
-    });
+    })
+
+    const participants = tickets.map(ticket => ticket.user);
+
     return {
       message: "Event participants found successfully!",
-      data: users
+      data: participants
     }
   }
 }

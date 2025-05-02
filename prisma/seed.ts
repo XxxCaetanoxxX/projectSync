@@ -132,14 +132,6 @@ async function main() {
         }
     })
 
-
-    await prisma.tb_event_participant.create({
-        data: {
-            userId: 3,
-            eventId: 1
-        }
-    })
-
     console.log('created');
 }
 

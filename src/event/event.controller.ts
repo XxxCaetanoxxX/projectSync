@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, Res, UseInterceptors, ParseFilePipeBuilder, HttpStatus, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, Res, UseInterceptors, ParseFilePipeBuilder, HttpStatus, UploadedFiles, Req } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -15,14 +15,15 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 export class EventController {
   constructor(private readonly eventService: EventService) { }
 
-  @Post()
+  @Roles('ADMIN', 'ORGANIZER', 'PARTICIPANT')
+  @Post('create')
   @ApiResponse({
     status: 201,
     description: 'Create the event.',
     example: CreateEventSE
   })
-  create(@Body() createEventDto: CreateEventDto) {
-    return this.eventService.create(createEventDto);
+  create(@Body() createEventDto: CreateEventDto, @Req() req: any) {
+    return this.eventService.create(createEventDto, req.user.id);
   }
 
   @Get()
@@ -55,14 +56,15 @@ export class EventController {
     responseFile({ file: buffer, filename: `${name}`, res, type: 'application/pdf' });
   }
 
+  @Roles('ADMIN', 'ORGANIZER')
   @Patch(':id')
   @ApiResponse({
     status: 200,
     description: 'Update the event.',
     example: UpdateEventSE
   })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventService.update(id, updateEventDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateEventDto: UpdateEventDto, @Req() req: any) {
+    return this.eventService.update(id, updateEventDto, req.user);
   }
 
   @Roles('ADMIN', 'ORGANIZER')

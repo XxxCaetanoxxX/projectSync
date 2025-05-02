@@ -8,9 +8,5 @@ export class CreateEventDto {
 
     @ApiProperty()
     @IsInt()
-    organizerId: number
-
-    @ApiProperty()
-    @IsInt()
     partyHouseId: number
 }
