@@ -1,12 +1,12 @@
-import { BadRequestException, Injectable, Res } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { FindAllEventsDto } from './dto/find-all-events.dto';
 import { PdfService } from '../pdf/pdf.service';
-import { BucketSupabaseService } from 'src/bucket_supabase/bucket_supabase.service';
-import { UsersService } from 'src/users/users.service';
-import { RolesEnum } from "src/commom/enums/roles.enum";
+import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
+import { UsersService } from '../users/users.service';
+import { RolesEnum } from "../commom/enums/roles.enum";
 
 
 
@@ -19,8 +19,7 @@ export class EventService {
       await this.usersService.update(userId, { role: RolesEnum.ORGANIZER });
     }
 
-    await this.prisma.tb_event.create({ data: { ...createEventDto, organizerId: userId } });
-    return { message: "Event created successfully!" };
+    return await this.prisma.tb_event.create({ data: { ...createEventDto, organizerId: userId } });
   }
 
   async findAll({ name, ...dto }: FindAllEventsDto) {
