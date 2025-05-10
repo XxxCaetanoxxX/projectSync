@@ -41,7 +41,7 @@ export class UsersService {
     const isValidPassword = await this.hashingService.compare(password, user.password);
     if (!isValidPassword) throw new UnauthorizedException('Invalid password!');
 
-    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY, { expiresIn: '3h' });
+    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY);
   }
 
   async create({ password, ...createUserDto }: CreateUserDto) {

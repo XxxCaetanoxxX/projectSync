@@ -30,7 +30,7 @@ describe('EventService', () => {
 
   it('should find one event', async () => {
     const result = await service.findOne(1);
-    expect(result).toMatchObject({ id: 1, name: 'ultimo baile do ano' });;
+    expect(result).toMatchObject({ id: 1, name: 'ultimo baile do ano' });
   });
 
   it('should find one event pdf', async () => {
