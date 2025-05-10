@@ -99,10 +99,10 @@ export class UsersController {
     return await this.usersService.uploadAvatarImage(req.user.id, file);
   }
 
-  @Post('/buy/:eventId')
-  buyTicket(@Param('eventId', ParseIntPipe) eventId: number, @Req() req: any) {
-    return this.usersService.buyTicket(eventId, req.user.id);
-  }
+  // @Post('/buy/:eventId')
+  // buyTicket(@Param('eventId', ParseIntPipe) eventId: number, @Req() req: any) {
+  //   return this.usersService.buyTicket(eventId, req.user.id);
+  // }
 
   @Roles('ADMIN', 'ORGANIZER')
   @Get('/event/:eventId')

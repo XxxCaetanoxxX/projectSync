@@ -3,6 +3,9 @@ import { EventService } from './event.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PdfService } from '../pdf/pdf.service';
+import { UsersService } from '../users/users.service';
+import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
+import { HashingService } from '../hashing/hashing.service';
 
 describe('EventService', () => {
   let service: EventService;
@@ -10,7 +13,7 @@ describe('EventService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EventService, PrismaService, PdfService],
+      providers: [EventService, PrismaService, PdfService, UsersService, BucketSupabaseService, HashingService],
     }).compile();
 
     service = module.get<EventService>(EventService);
@@ -27,7 +30,7 @@ describe('EventService', () => {
 
   it('should find one event', async () => {
     const result = await service.findOne(1);
-    expect(result).toMatchObject({ id: 1, name: 'ultimo baile do ano' });;
+    expect(result).toMatchObject({ id: 1, name: 'ultimo baile do ano' });
   });
 
   it('should find one event pdf', async () => {
@@ -39,19 +42,23 @@ describe('EventService', () => {
     const result = await service.create({
       name: 'Test event',
       partyHouseId: 1,
-      organizerId: 1
-    });
+    },
+      1);
     idCreatedEvent = result.id;
     expect(result).toEqual({ id: result.id, name: 'Test event', organizerId: 1, partyHouseId: 1 });
   });
 
   it('should update an event', async () => {
-    const artist = await service.findOne(idCreatedEvent);
+    const event = await service.findOne(idCreatedEvent);
 
-    const updatedUser = await service.update(idCreatedEvent, {
+    const updatedEvent = await service.update(idCreatedEvent, {
       name: 'Test event update',
-    });
-    expect(artist.name).not.toEqual(updatedUser.name);
+    },
+      {
+        id: event.organizerId,
+        role: 'ORGANIZER',
+      });
+    expect(event.name).not.toEqual(updatedEvent.name);
   });
 
   it('should delete event', async () => {

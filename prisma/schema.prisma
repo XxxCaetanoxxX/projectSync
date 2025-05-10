@@ -8,18 +8,18 @@ datasource db {
 }
 
 model tb_user {
-  id                 Int                    @id @default(autoincrement())
-  name               String
-  cpf                String                 @unique
-  email              String                 @unique
-  phone              String                 @unique
-  password           String
-  role               Role
-  createdAt          DateTime               @default(now())
-  imageId            Int?                   @unique
-  eventsOrganized    tb_event[]             @relation("OrganizerToEvent")
-  eventsParticipated tb_event_participant[]
-  image              tb_user_image?
+  id              Int            @id @default(autoincrement())
+  name            String
+  cpf             String         @unique
+  email           String         @unique
+  phone           String         @unique
+  password        String
+  role            Role
+  createdAt       DateTime       @default(now())
+  imageId         Int?           @unique
+  eventsOrganized tb_event[]     @relation("OrganizerToEvent")
+  image           tb_user_image?
+  tickets         tb_ticket[] // Relacionamento com ingressos comprados
 }
 
 model tb_user_image {
@@ -29,23 +29,39 @@ model tb_user_image {
   user   tb_user @relation(fields: [userId], references: [id])
 }
 
-model tb_party_house {
-  id      Int        @id @default(autoincrement())
-  name    String
-  address String
-  events  tb_event[]
+model tb_ticket_type {
+  id       Int      @id @default(autoincrement())
+  name     String
+  price    Float
+  quantity Int
+  eventId  Int
+  event    tb_event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  tickets tb_ticket[]
+}
+
+model tb_ticket {
+  id           Int            @id @default(autoincrement())
+  ticketName   String
+  ticketTypeId Int
+  userId       Int
+  ticket_type  tb_ticket_type @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  user         tb_user        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime       @default(now())
+
+  @@unique([ticketTypeId, userId])
 }
 
 model tb_event {
-  id           Int                    @id @default(autoincrement())
+  id           Int                  @id @default(autoincrement())
   name         String
   organizerId  Int
   partyHouseId Int
-  artists      tb_artist_event[]
-  organizer    tb_user                @relation("OrganizerToEvent", fields: [organizerId], references: [id])
-  party_house  tb_party_house         @relation(fields: [partyHouseId], references: [id], onDelete: Cascade)
+  artists      tb_artist_on_event[]
+  organizer    tb_user              @relation("OrganizerToEvent", fields: [organizerId], references: [id])
+  party_house  tb_party_house       @relation(fields: [partyHouseId], references: [id], onDelete: Cascade)
   images       tb_event_image[]
-  participants tb_event_participant[]
+  ticketTypes  tb_ticket_type[]
 }
 
 model tb_event_image {
@@ -56,12 +72,12 @@ model tb_event_image {
 }
 
 model tb_artist {
-  id     Int               @id @default(autoincrement())
+  id     Int                  @id @default(autoincrement())
   name   String
-  events tb_artist_event[]
+  events tb_artist_on_event[]
 }
 
-model tb_artist_event {
+model tb_artist_on_event {
   id       Int       @id @default(autoincrement())
   artistId Int
   eventId  Int
@@ -71,14 +87,11 @@ model tb_artist_event {
   @@unique([artistId, eventId])
 }
 
-model tb_event_participant {
-  id      Int      @id @default(autoincrement())
-  userId  Int
-  eventId Int
-  event   tb_event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user    tb_user  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, eventId])
+model tb_party_house {
+  id      Int        @id @default(autoincrement())
+  name    String
+  address String
+  events  tb_event[]
 }
 
 enum Role {
