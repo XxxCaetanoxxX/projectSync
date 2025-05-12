@@ -9,36 +9,34 @@ import { HashingService } from '../hashing/hashing.service';
 
 describe.only('EventService', () => {
   let service: EventService;
-  let idCreatedEvent: number;
-  let idsList: number[] = [];
+  let createdEventId: number;
 
   beforeAll(async () => {
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [EventService, PrismaService, PdfService, UsersService, BucketSupabaseService, HashingService],
     }).compile();
 
     service = module.get<EventService>(EventService);
+  });
 
-    const { id } = await service.create({
-      name: 'test event',
-      partyHouseId: 1,
-    },
-      1);
-    idCreatedEvent = id;
-    idsList.push(id);
-  })
+  beforeEach(async () => {
+    const { id } = await service.create({ name: 'test event', partyHouseId: 1 }, 1);
+    createdEventId = id;
+  });
 
-  afterAll(async () => {
-    for (const id of idsList) {
-      try {
-        await service.remove(id);
-      } catch (error) { }
-    }
-  })
+  afterEach(async () => {
+    try {
+      await service.remove(createdEventId);
+    } catch (_) { }
+  });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('should find one event', async () => {
+    const result = await service.findOne(createdEventId);
+    expect(result).toMatchObject({ id: createdEventId, name: 'test event' });
   });
 
   it('should find all events', async () => {
@@ -46,41 +44,35 @@ describe.only('EventService', () => {
     expect(result.length).toBeGreaterThan(0);
   });
 
-  it('should find one event', async () => {
-    const result = await service.findOne(1);
-    expect(result).toMatchObject({ id: 1, name: 'ultimo baile do ano' });
-  });
-
-  it('should find one event pdf', async () => {
-    const result = await service.findOnePdf(1);
-    expect(result).toEqual({ buffer: expect.any(Buffer), name: 'ultimo baile do ano.pdf' });
-  });
 
   it('should create an event', async () => {
-    const result = await service.create({
-      name: 'Test event',
+    const created = await service.create({ name: 'new event', partyHouseId: 1 }, 1);
+
+    await service.remove(created.id);
+
+    expect(created).toEqual({
+      id: created.id,
+      name: 'new event',
+      organizerId: 1,
       partyHouseId: 1,
-    },
-      1);
-    idsList.push(result.id);
-    expect(result).toEqual({ id: result.id, name: 'Test event', organizerId: 1, partyHouseId: 1 });
+    });
   });
 
   it('should update an event', async () => {
-    const event = await service.findOne(idCreatedEvent);
-
-    const updatedEvent = await service.update(idCreatedEvent, {
-      name: 'Test event update',
-    },
-      {
-        id: event.organizerId,
-        role: 'ORGANIZER',
-      });
-    expect(event.name).not.toEqual(updatedEvent.name);
+    const updated = await service.update(createdEventId, { name: 'updated' }, {
+      id: 1,
+      role: 'ORGANIZER',
+    });
+    expect(updated.name).toEqual('updated');
   });
 
   it('should delete event', async () => {
-    await service.remove(idCreatedEvent);
-    expect(service.findOne(idCreatedEvent)).rejects.toThrow(PrismaClientKnownRequestError);
-  })
+    await service.remove(createdEventId);
+    await expect(service.findOne(createdEventId)).rejects.toThrow(PrismaClientKnownRequestError);
+  });
+
+  it('should find one event pdf', async () => {
+    const result = await service.findOnePdf(createdEventId);
+    expect(result).toEqual({ buffer: expect.any(Buffer), name: 'test event.pdf' });
+  });
 });
