@@ -7,17 +7,35 @@ import { UsersService } from '../users/users.service';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 import { HashingService } from '../hashing/hashing.service';
 
-describe('EventService', () => {
+describe.only('EventService', () => {
   let service: EventService;
   let idCreatedEvent: number;
+  let idsList: number[] = [];
 
-  beforeEach(async () => {
+  beforeAll(async () => {
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [EventService, PrismaService, PdfService, UsersService, BucketSupabaseService, HashingService],
     }).compile();
 
     service = module.get<EventService>(EventService);
-  });
+
+    const { id } = await service.create({
+      name: 'test event',
+      partyHouseId: 1,
+    },
+      1);
+    idCreatedEvent = id;
+    idsList.push(id);
+  })
+
+  afterAll(async () => {
+    for (const id of idsList) {
+      try {
+        await service.remove(id);
+      } catch (error) { }
+    }
+  })
 
   it('should be defined', () => {
     expect(service).toBeDefined();
@@ -44,7 +62,7 @@ describe('EventService', () => {
       partyHouseId: 1,
     },
       1);
-    idCreatedEvent = result.id;
+    idsList.push(result.id);
     expect(result).toEqual({ id: result.id, name: 'Test event', organizerId: 1, partyHouseId: 1 });
   });
 
