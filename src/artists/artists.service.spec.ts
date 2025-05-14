@@ -5,14 +5,37 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 describe('ArtistsService', () => {
   let service: ArtistService;
+  let prisma: PrismaService;
   let idCreatedUser: number;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [ArtistService, PrismaService],
     }).compile();
 
+    prisma = module.get<PrismaService>(PrismaService);
     service = module.get<ArtistService>(ArtistService);
+  });
+
+  beforeEach(async () => {
+    const { id } = await prisma.tb_artist.create({
+      data: {
+        name: 'test artist'
+      }
+    })
+
+    idCreatedUser = id
+  });
+
+  afterEach(async () => {
+    try {
+      await prisma.tb_artist.delete({
+        where: {
+          id: idCreatedUser
+        }
+      })
+    }
+    catch (_) { }
   });
 
   it('should be defined', () => {
@@ -25,16 +48,28 @@ describe('ArtistsService', () => {
   });
 
   it('should find one artist', async () => {
-    const result = await service.findOne(1);
-    expect(result).toMatchObject({ id: 1, name: 'Matue' });;
+    const result = await service.findOne(idCreatedUser);
+    expect(result).toMatchObject({ id: idCreatedUser, name: 'test artist' });;
   });
 
   it('should create an artist', async () => {
-    const result = await service.create({
+    const createdArtist = await service.create({
       name: 'Test Artist',
     });
-    idCreatedUser = result.id;
-    expect(result).toEqual({ id: result.id, name: 'Test Artist' });
+
+    const findedArtist = await prisma.tb_artist.findUnique({
+      where: {
+        id: createdArtist.id
+      }
+    })
+
+    await prisma.tb_artist.delete({
+      where: {
+        id: createdArtist.id
+      }
+    })
+
+    expect(createdArtist).toEqual(findedArtist);
   });
 
   it('should update an artist', async () => {

@@ -9,6 +9,7 @@ import { HashingService } from '../hashing/hashing.service';
 
 describe.only('EventService', () => {
   let service: EventService;
+  let prisma: PrismaService;
   let createdEventId: number;
 
   beforeAll(async () => {
@@ -16,17 +17,24 @@ describe.only('EventService', () => {
       providers: [EventService, PrismaService, PdfService, UsersService, BucketSupabaseService, HashingService],
     }).compile();
 
+    prisma = module.get<PrismaService>(PrismaService);
     service = module.get<EventService>(EventService);
   });
 
   beforeEach(async () => {
-    const { id } = await service.create({ name: 'test event', partyHouseId: 1 }, 1);
+    const { id } = await prisma.tb_event.create({
+      data: {
+        name: 'test event',
+        partyHouseId: 1,
+        organizerId: 1
+      }
+    });
     createdEventId = id;
   });
 
   afterEach(async () => {
     try {
-      await service.remove(createdEventId);
+      await prisma.tb_event.delete({ where: { id: createdEventId } });
     } catch (_) { }
   });
 
@@ -48,7 +56,7 @@ describe.only('EventService', () => {
   it('should create an event', async () => {
     const created = await service.create({ name: 'new event', partyHouseId: 1 }, 1);
 
-    await service.remove(created.id);
+    await prisma.tb_event.delete({ where: { id: created.id } });
 
     expect(created).toEqual({
       id: created.id,
