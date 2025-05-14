@@ -76,7 +76,7 @@ describe.only('EventService', () => {
 
   it('should delete event', async () => {
     await service.remove(createdEventId);
-    await expect(service.findOne(createdEventId)).rejects.toThrow(PrismaClientKnownRequestError);
+    expect(service.findOne(createdEventId)).rejects.toThrow(PrismaClientKnownRequestError);
   });
 
   it('should find one event pdf', async () => {
