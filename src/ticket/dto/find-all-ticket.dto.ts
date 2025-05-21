@@ -3,9 +3,9 @@ import { IsNumber, IsOptional } from "class-validator"
 export class FindAllTicketDto {
     @IsOptional()
     @IsNumber()
-    userId: number
+    userId?: number
 
     @IsOptional()
     @IsNumber()
-    ticketTypeId: number
+    ticketTypeId?: number
 }
