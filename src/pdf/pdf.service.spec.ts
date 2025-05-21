@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PdfService } from './pdf.service';
 import { EventService } from '../event/event.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
+import { UsersService } from '../users/users.service';
+import { HashingService } from '../hashing/hashing.service';
 
 describe('PdfService', () => {
   let service: PdfService;
@@ -9,7 +12,7 @@ describe('PdfService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PdfService, EventService, PrismaService],
+      providers: [PdfService, EventService, PrismaService, BucketSupabaseService, UsersService, HashingService],
     }).compile();
 
     eventService = module.get<EventService>(EventService);

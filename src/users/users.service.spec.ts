@@ -4,21 +4,46 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { RolesEnum } from '../commom/enums/roles.enum';
 import { PrismaService } from '../prisma/prisma.service';
 import { HashingService } from '../hashing/hashing.service';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 
 describe('UsersService', () => {
   let service: UsersService;
   let prisma: PrismaService;
-  let id;
+  let idCreatedUser: number;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService, PrismaService, HashingService],
+      providers: [UsersService, PrismaService, HashingService, BucketSupabaseService],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
     prisma = module.get<PrismaService>(PrismaService);
-
   });
+
+  beforeEach(async () => {
+    const { id } = await prisma.tb_user.create({
+      data: {
+        name: 'test user',
+        role: RolesEnum.ADMIN,
+        cpf: '4651849541564',
+        phone: '5531996791636',
+        email: 'testuser@gmail.com',
+        password: 'dpmg123'
+      }
+    });
+    idCreatedUser = id
+  });
+
+  afterEach(async () => {
+    try {
+      await prisma.tb_user.delete({
+        where: {
+          id: idCreatedUser
+        }
+      });
+    } catch (_) { }
+  })
 
   it('should be defined', () => {
     expect(service).toBeDefined();
@@ -39,21 +64,21 @@ describe('UsersService', () => {
   })
 
   it('should find one user', async () => {
-    const result = await service.findOne({ id: 1 });
-    expect(result.name).toEqual('Caetano');
+    const result = await service.findOne({ id: idCreatedUser });
+    expect(result.name).toEqual('test user');
   })
 
   it('should be create user', async () => {
     const createUserDto: CreateUserDto = {
-      name: 'Test user3',
+      name: 'Test user2',
       role: RolesEnum.ADMIN,
       cpf: '7894564192',
-      phone: '5531997728631',
+      phone: '5531997730631',
       email: 'testuser2@gmail.com',
       password: 'dpmg123'
     };
     const result = await service.create(createUserDto);
-    id = result.id;
+    await prisma.tb_user.delete({ where: { id: result.id } });
     expect(Object.keys(result)).toEqual([
       'id',
       'name',
@@ -62,7 +87,8 @@ describe('UsersService', () => {
       'phone',
       'password',
       'role',
-      'createdAt'
+      'createdAt',
+      'imageId'
     ]);
   })
 
@@ -70,17 +96,17 @@ describe('UsersService', () => {
     const updateUserDto = {
       name: 'Caetano'
     };
-    const result = await service.update(id, updateUserDto);
+    const result = await service.update(idCreatedUser, updateUserDto);
     expect(result.name).toEqual(updateUserDto.name);
   })
 
   it('should delete user', async () => {
-    const result = await service.remove(id);
-    expect(result).toBeDefined();
+    await service.remove(idCreatedUser);
+    expect(prisma.tb_user.findUniqueOrThrow({ where: { id: idCreatedUser } })).rejects.toThrow(PrismaClientKnownRequestError);
   })
 
   it('should find logged user', async () => {
-    const result = await service.findLoggedUser(1);
-    expect(result.name).toEqual('Caetano');
+    const result = await service.findLoggedUser(idCreatedUser);
+    expect(result.name).toEqual('test user');
   })
 });

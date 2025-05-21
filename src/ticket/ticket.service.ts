@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BuyTicketDto } from './dto/buy-ticket.dto';
 import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
@@ -10,9 +10,93 @@ import { FindOneTicketDto } from './dto/find-one-ticket.dto';
 @Injectable()
 export class TicketService {
   constructor(private readonly prisma: PrismaService) { }
+  async createType(createTicketTypeDto: CreateTicketTypeDto) {
+    const ticket = await this.prisma.tb_ticket_type.create(
+      {
+        data: {
+          ...createTicketTypeDto
+        }
+      }
+    )
+    return { message: "Ticket type created successfully!", data: ticket }
+  }
+
+  async updateType(id: number, updateTicketTypeDto: UpdateTicketTypeDto) {
+    return await this.prisma.tb_ticket_type.update({
+      where: {
+        id
+      },
+      data: {
+        ...updateTicketTypeDto
+      }
+    })
+  }
+
+  async deleteType(id: number) {
+    await this.prisma.tb_ticket_type.delete({ where: { id } });
+    return { message: "Ticket type deleted successfully!" }
+  }
+
+  async findAllTypes(eventId: number) {
+    const types = await this.prisma.tb_ticket_type.findMany({
+      where: {
+        eventId
+      },
+      select: {
+        id: true,
+        name: true,
+        eventId: true,
+        price: true,
+        quantity: true,
+        event: {
+          select: {
+            name: true,
+          }
+        },
+      }
+    });
+
+    return types.map(type => ({
+      id: type.id,
+      name: type.name,
+      event_id: type.eventId,
+      event_name: type.event.name,
+      price: type.price,
+      quantity: type.quantity,
+    }));
+  }
+
+  async findOneType(ticketTypeId: number) {
+    const ticketType = await this.prisma.tb_ticket_type.findUniqueOrThrow({
+      where: {
+        id: ticketTypeId
+      },
+      select: {
+        id: true,
+        name: true,
+        eventId: true,
+        price: true,
+        quantity: true,
+        event: {
+          select: {
+            name: true,
+          }
+        },
+      }
+    })
+
+    return {
+      id: ticketType.id,
+      name: ticketType.name,
+      event_id: ticketType.eventId,
+      event_name: ticketType.event.name,
+      price: ticketType.price,
+      quantity: ticketType.quantity
+    }
+  }
 
   async buyTicket(buyTicketDto: BuyTicketDto, userId: number) {
-    await this.prisma.$transaction(async (prisma) => {
+    const ticketData = await this.prisma.$transaction(async (tx) => {
       const ticketType = await this.findOneType(buyTicketDto.ticketTypeId);
 
       if (!ticketType || ticketType.quantity <= 0) {
@@ -21,32 +105,36 @@ export class TicketService {
 
       const ticketName = `${ticketType.name} - ${ticketType.event_name}`
 
-      await prisma.tb_ticket.create({
+      const ticket = await tx.tb_ticket.create({
         data: {
           ...buyTicketDto,
           ticketName,
           userId,
         },
-      });
+        select: {
+          id: true,
+          ticketName: true,
+          user: {
+            select: {
+              name: true
+            }
+          }
+        }
+      },
+      );
 
-      await prisma.tb_ticket_type.update({
+      await tx.tb_ticket_type.update({
         where: { id: ticketType.id },
         data: { quantity: ticketType.quantity - 1 },
       });
+
+      return ticket
     });
 
-    return { message: "Ticket bought successfully!" }
-  }
-
-  async createType(createTicketTypeDto: CreateTicketTypeDto) {
-    const ticker = await this.prisma.tb_ticket_type.create(
-      {
-        data: {
-          ...createTicketTypeDto
-        }
-      }
-    )
-    return { message: "Ticket type created successfully!", data: ticker }
+    return {
+      message: "Ticket bought successfully!",
+      data: ticketData
+    }
   }
 
   async findUserTickets(userId: number) {
@@ -129,71 +217,14 @@ export class TicketService {
     }));
   }
 
-  async findAllTypes(eventId: number) {
-    const types = await this.prisma.tb_ticket_type.findMany({
-      where: {
-        eventId
-      },
-      select: {
-        id: true,
-        name: true,
-        eventId: true,
-        price: true,
-        quantity: true,
-        event: {
-          select: {
-            name: true,
-          }
-        },
-      }
-    });
-
-    return types.map(type => ({
-      id: type.id,
-      name: type.name,
-      event_id: type.eventId,
-      event_name: type.event.name,
-      price: type.price,
-      quantity: type.quantity,
-    }));
-  }
-
-  async findOneType(ticketTypeId: number) {
-    const ticketType = await this.prisma.tb_ticket_type.findUniqueOrThrow({
-      where: {
-        id: ticketTypeId
-      },
-      select: {
-        id: true,
-        name: true,
-        eventId: true,
-        price: true,
-        quantity: true,
-        event: {
-          select: {
-            name: true,
-          }
-        },
-      }
-    })
-
-    return {
-      id: ticketType.id,
-      name: ticketType.name,
-      event_id: ticketType.eventId,
-      event_name: ticketType.event.name,
-      price: ticketType.price,
-      quantity: ticketType.quantity
-    }
-  }
-
-  async findOneTicket({ ...findOneTicketDto }: FindOneTicketDto) {
+  async findOneTicket(findOneTicketDto: FindOneTicketDto) {
     const ticket = await this.prisma.tb_ticket.findFirst({
       where: {
         ...findOneTicketDto
       },
       select: {
         id: true,
+        ticketName: true,
         createdAt: true,
         ticketTypeId: true,
         userId: true,
@@ -217,8 +248,13 @@ export class TicketService {
       }
     })
 
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found!');
+    }
+
     return {
       id: ticket.id,
+      ticket_name: ticket.ticketName,
       created_at: ticket.createdAt,
       ticket_type_id: ticket.ticketTypeId,
       user_id: ticket.userId,
@@ -231,7 +267,7 @@ export class TicketService {
   }
 
   async updateTicket(id: number, updateTicketDto: UpdateTicketDto) {
-    await this.prisma.tb_ticket.update({
+    const ticket = await this.prisma.tb_ticket.update({
       where: {
         id
       },
@@ -239,28 +275,14 @@ export class TicketService {
         ...updateTicketDto
       }
     })
-    return { message: "Ticket updated successfully!" }
-  }
-
-  async updateType(id: number, updateTicketTypeDto: UpdateTicketTypeDto) {
-    await this.prisma.tb_ticket_type.update({
-      where: {
-        id
-      },
-      data: {
-        ...updateTicketTypeDto
-      }
-    })
-    return { message: "Ticket type updated successfully!" }
+    return {
+      message: "Ticket updated successfully!",
+      data: ticket
+    }
   }
 
   async deleteTicket(id: number) {
     await this.prisma.tb_ticket.delete({ where: { id } });
     return { message: "Ticket deleted successfully!" }
-  }
-
-  async deleteType(id: number) {
-    await this.prisma.tb_ticket_type.delete({ where: { id } });
-    return { message: "Ticket type deleted successfully!" }
   }
 }
