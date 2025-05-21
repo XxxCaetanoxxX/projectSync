@@ -1,9 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TicketService } from './ticket.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { UsersService } from '../users/users.service';
-import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
-import { HashingService } from '../hashing/hashing.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { NotFoundException } from '@nestjs/common';
 
