@@ -7,7 +7,7 @@ import { UsersService } from '../users/users.service';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 import { HashingService } from '../hashing/hashing.service';
 
-describe.only('EventService', () => {
+describe('EventService', () => {
   let service: EventService;
   let prisma: PrismaService;
   let createdEventId: number;

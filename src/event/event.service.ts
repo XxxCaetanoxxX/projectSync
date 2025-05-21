@@ -12,7 +12,13 @@ import { RolesEnum } from "../commom/enums/roles.enum";
 
 @Injectable()
 export class EventService {
-  constructor(private readonly prisma: PrismaService, private readonly pdfService: PdfService, private readonly bucketSupabaseService: BucketSupabaseService, private readonly usersService: UsersService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly pdfService: PdfService,
+    private readonly bucketSupabaseService: BucketSupabaseService,
+    private readonly usersService: UsersService
+  ) { }
+
   async create({ ...createEventDto }: CreateEventDto, userId: number) {
     const user = await this.usersService.findOne({ id: userId });
     if (user.role !== RolesEnum.ORGANIZER && user.role !== RolesEnum.ADMIN) {

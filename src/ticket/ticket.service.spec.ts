@@ -77,7 +77,7 @@ describe('Ticket Type', () => {
     })
 });
 
-describe.only('Ticket', () => {
+describe('Ticket', () => {
     let service: TicketService;
     let prisma: PrismaService;
     let ticketTypeId: number;
