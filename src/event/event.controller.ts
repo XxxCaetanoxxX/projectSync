@@ -5,10 +5,10 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { FindAllEventsDto } from './dto/find-all-events.dto';
 import { responseFile } from 'src/commom/utils/response.file';
 import { Response } from 'express';
-import { ApiResponse } from '@nestjs/swagger';
 import { CreateEventSE, DeleteEventSE, FindAllEventsSE, FindOneEventSE, UpdateEventSE } from './event_swagger_exemples';
 import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
 
 
 @Controller('events')
@@ -17,9 +17,9 @@ export class EventController {
 
   @Roles('ADMIN', 'ORGANIZER', 'PARTICIPANT')
   @Post('create')
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 201,
-    description: 'Create the event.',
+    summary: 'Create the event.',
     example: CreateEventSE
   })
   create(@Body() createEventDto: CreateEventDto, @Req() req: any) {
@@ -27,9 +27,9 @@ export class EventController {
   }
 
   @Get()
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'Return all events.',
+    summary: 'Return all events.',
     example: FindAllEventsSE
   })
   findAll(@Query() findAllEventsDto: FindAllEventsDto) {
@@ -37,9 +37,9 @@ export class EventController {
   }
 
   @Get(':id')
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'Return one event.',
+    summary: 'Return one event.',
     example: FindOneEventSE
   })
   findOne(@Param('id', ParseIntPipe) id: number) {
@@ -47,9 +47,10 @@ export class EventController {
   }
 
   @Get(':id/pdf')
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'Generete a pdf.',
+    summary: 'Generete a pdf.',
+    example: { buffet: 'buffer' }
   })
   async findOnePdf(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
     const { buffer, name } = await this.eventService.findOnePdf(id);
@@ -58,9 +59,9 @@ export class EventController {
 
   @Roles('ADMIN', 'ORGANIZER')
   @Patch(':id')
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'Update the event.',
+    summary: 'Update the event.',
     example: UpdateEventSE
   })
   update(@Param('id', ParseIntPipe) id: number, @Body() updateEventDto: UpdateEventDto, @Req() req: any) {
@@ -69,6 +70,11 @@ export class EventController {
 
   @Roles('ADMIN', 'ORGANIZER')
   @UseInterceptors(FilesInterceptor('eventfiles'))
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'Upload event images.',
+    example: { message: 'Image updated successfully!' }
+  })
   @Patch('upload/images/:eventId')
   async updatePhotos(@Param('eventId', ParseIntPipe) eventId: number, @UploadedFiles(
     new ParseFilePipeBuilder().addFileTypeValidator({
@@ -84,9 +90,9 @@ export class EventController {
 
   @Roles('ADMIN', 'ORGANIZER')
   @Delete(':id')
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'Delete the event.',
+    summary: 'Delete the event.',
     example: DeleteEventSE
   })
   remove(@Param('id', ParseIntPipe) id: number) {
@@ -95,6 +101,11 @@ export class EventController {
 
   @Roles('ADMIN', 'ORGANIZER')
   @Delete('images/:imageId')
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'Delete the image.',
+    example: { message: 'Image deleted successfully!' }
+  })
   deleteImage(@Param('imageId', ParseIntPipe) imageId: number) {
     return this.eventService.deleteImage(imageId);
   }

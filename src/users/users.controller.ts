@@ -5,23 +5,20 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from 'src/commom/decorators/public_decorator.decorator';
 import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import * as path from 'path';
-import * as fs from 'node:fs/promises';
-import { randomUUID } from 'node:crypto';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
-import { ApiResponse } from '@nestjs/swagger';
-import { CreateUserSE, DeleteUserSE, FindAllUsersSE, FindOneUserSE, LoginSE, UpdateUserSE } from './users_swagger_exemples';
+import { CreateUserSE, DeleteUserSE, FindAllUsersSE, FindOneUserSE, FindUsersEventsSE, LoginSE, UpdateUserSE, UploadUserImageSE } from './users_swagger_exemples';
+import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post('/login')
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'The user has been successfully logged in.',
+    summary: 'The user has been successfully logged in.',
     example: LoginSE
   })
   @Public()
@@ -31,9 +28,9 @@ export class UsersController {
 
   @Public()
   @Post()
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 201,
-    description: 'The user has been successfully created.',
+    summary: 'Create a new user.',
     example: CreateUserSE
   })
   create(@Body() createUserDto: CreateUserDto) {
@@ -42,9 +39,9 @@ export class UsersController {
 
   @Roles('ADMIN', 'ORGANIZER')
   @Get()
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'The users have been successfully found.',
+    summary: 'Find all users.',
     example: FindAllUsersSE
   })
   findAll(@Query() findAllUsersDto: FindAllUsersDto) {
@@ -53,9 +50,9 @@ export class UsersController {
 
   @Roles('ADMIN', 'ORGANIZER')
   @Get('/one')
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'The user has been successfully found.',
+    summary: 'Find one user.',
     example: FindOneUserSE
   })
   findOne(@Query() findOneUserDto: FindOneUserDto) {
@@ -64,9 +61,9 @@ export class UsersController {
 
   @Roles('ADMIN', 'ORGANIZER', 'PARTICIPANT')
   @Get('/me')
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'May found the logged user.',
+    summary: 'May found the logged user.',
     example: FindOneUserSE
   })
   findLoggedUser(@Req() req: any) {
@@ -75,9 +72,9 @@ export class UsersController {
 
   @Roles('ADMIN', 'ORGANIZER')
   @Patch(':id')
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'The user has been successfully updated.',
+    summary: 'Update the user.',
     example: UpdateUserSE
   })
   update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
@@ -87,6 +84,11 @@ export class UsersController {
 
   @UseInterceptors(FileInterceptor('userfile')) //nome do campo form-data que vai estar o arquivo no postman
   @Patch('upload/image')
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'Upload user image.',
+    example: UploadUserImageSE
+  })
   async updatePhoto(@UploadedFile(
     new ParseFilePipeBuilder().addFileTypeValidator({
       fileType: /jpeg|jpg|png/g,
@@ -106,15 +108,20 @@ export class UsersController {
 
   @Roles('ADMIN', 'ORGANIZER')
   @Get('/event/:eventId')
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'get event participants.',
+    example: FindUsersEventsSE
+  })
   getEventParticipants(@Param('eventId', ParseIntPipe) eventId: number) {
     return this.usersService.getEventParticipants(eventId);
   }
 
   @Roles('ADMIN', 'ORGANIZER')
   @Delete(':id')
-  @ApiResponse({
+  @ApiResponseUtil({
     status: 200,
-    description: 'The user has been successfully deleted.',
+    summary: 'Delete the user.',
     example: DeleteUserSE
   })
   remove(@Param('id', ParseIntPipe) id: number) {

@@ -66,3 +66,31 @@ export const DeleteUserSE = {
     role: 'PARTICIPANT',
     createdAt: new Date()
 }
+
+export const UploadUserImageSE = {
+    id: 6,
+    name: 'Jussara',
+    cpf: '74185296363',
+    email: 'jusssara@gmail.com',
+    image: {
+        id: 1,
+        userId: 6,
+        path: 'https://niqagoqodkqfpuzeefuq.supabase.co/storage/v1/object/public/user-images/caetano_profile_photo_1747873553926.jpg'
+    },
+}
+
+export const FindUsersEventsSE = {
+    message: 'Users events found successfully!',
+    data: [
+        {
+            id: 1,
+            name: 'Caetano',
+            email: 'caetano@gmail.com',
+        },
+        {
+            id: 2,
+            name: 'Tiago',
+            email: 'tiago@gmail.com',
+        }
+    ]
+}
