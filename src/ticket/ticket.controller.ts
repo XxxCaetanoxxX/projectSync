@@ -119,7 +119,6 @@ export class TicketController {
     return this.ticketService.findAllTickets(findAllTicketDto);
   }
 
-  //mudar para encontrar por outros atributos
   @Roles('PARTICIPANT', 'ORGANIZER', 'ADMIN')
   @Get('/:id')
   @ApiResponseUtil({

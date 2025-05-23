@@ -284,7 +284,16 @@ export class TicketService {
   }
 
   async deleteTicket(id: number) {
-    await this.prisma.tb_ticket.delete({ where: { id } });
-    return { message: "Ticket deleted successfully!" }
+    return this.prisma.$transaction(async (tx) => {
+      const { ticket_type_id } = await this.findOneTicket(id);
+
+      await tx.tb_ticket_type.update({
+        where: { id: ticket_type_id },
+        data: { quantity: { increment: 1 } },
+      })
+
+      await tx.tb_ticket.delete({ where: { id } });
+      return { message: "Ticket deleted successfully!" }
+    })
   }
 }
