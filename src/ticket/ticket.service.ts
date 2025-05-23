@@ -37,7 +37,7 @@ export class TicketService {
     return { message: "Ticket type deleted successfully!" }
   }
 
-  async findAllTypes(eventId: number) {
+  async findAllEventTypes(eventId: number) {
     const types = await this.prisma.tb_ticket_type.findMany({
       where: {
         eventId

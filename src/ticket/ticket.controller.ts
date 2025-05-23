@@ -19,8 +19,7 @@ import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
 import { Roles } from '../commom/decorators/roles_decorator.decorator'
 import { FindOneTicketDto } from './dto/find-one-ticket.dto';
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
-import { BuyTicketSE, CreateTicketSE, FindAllTicketsSE, FindAllTypesSE, FindOneTicketSE, FindUserTicketsSE, UpdateTicketSE, UpdateTypeSE } from './tickets_swagger_Exemple';
-import { FindUsersEventsSE } from 'src/users/users_swagger_exemples';
+import { BuyTicketSE, CreateTicketSE, FindAllEventTypesSE, FindAllTicketsSE, FindOneTicketSE, FindOneTypeSE, FindUserTicketsSE, UpdateTicketSE, UpdateTypeSE } from './tickets_swagger_Exemple';
 
 @Controller('ticket')
 export class TicketController {
@@ -70,16 +69,15 @@ export class TicketController {
     return this.ticketService.findAllTickets(findAllTicketDto);
   }
 
-  //fazer o DTO
   @Roles('PARTICIPANT', 'ORGANIZER', 'ADMIN')
   @Get('types/:eventId')
   @ApiResponseUtil({
     status: 200,
-    summary: 'Find all ticket types.',
-    example: FindAllTypesSE
+    summary: 'Find event ticket types.',
+    example: FindAllEventTypesSE
   })
-  findAllTypes(@Param('eventId', ParseIntPipe) eventId: number) {
-    return this.ticketService.findAllTypes(eventId);
+  findAllEventTypes(@Param('eventId', ParseIntPipe) eventId: number) {
+    return this.ticketService.findAllEventTypes(eventId);
   }
 
   @Roles('PARTICIPANT', 'ORGANIZER', 'ADMIN')
@@ -87,7 +85,7 @@ export class TicketController {
   @ApiResponseUtil({
     status: 200,
     summary: 'Find one ticket type.',
-    example: { message: 'Image deleted successfully!' }
+    example: FindOneTypeSE
   })
   findOneType(@Param('id', ParseIntPipe) ticketTypeId: number) {
     return this.ticketService.findOneType(ticketTypeId);

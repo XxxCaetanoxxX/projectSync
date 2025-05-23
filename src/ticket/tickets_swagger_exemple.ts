@@ -62,7 +62,7 @@ export const FindAllTicketsSE = [{
     user_email: "biancaribeiro@gmail.com",
 }]
 
-export const FindAllTypesSE = [{
+export const FindAllEventTypesSE = [{
     id: 78,
     name: 'VIP',
     event_id: 5,
@@ -109,4 +109,13 @@ export const UpdateTypeSE = {
     price: 190.90,
     quantity: 90,
     eventId: 50,
+}
+
+export const FindOneTypeSE = {
+    id: 50,
+    name: 'VIP',
+    event_id: 5,
+    event_name: 'Só Track Boa',
+    price: 200.89,
+    quantity: 900,
 }
