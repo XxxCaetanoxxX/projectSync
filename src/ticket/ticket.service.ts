@@ -184,6 +184,7 @@ export class TicketService {
       select: {
         id: true,
         ticketTypeId: true,
+        ticketName: true,
         userId: true,
         user: {
           select: {
@@ -210,6 +211,7 @@ export class TicketService {
       ticket_type_id: ticket.ticketTypeId,
       user_id: ticket.userId,
       event_id: ticket.ticket_type.event.id,
+      ticket_name: ticket.ticketName,
       event_name: ticket.ticket_type.event.name,
       ticket_type_name: ticket.ticket_type.name,
       user_name: ticket.user.name,
