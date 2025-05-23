@@ -11,13 +11,11 @@ import {
   Req,
 } from '@nestjs/common';
 import { TicketService } from './ticket.service';
-import { BuyTicketDto } from './dto/buy-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { FindAllTicketDto } from './dto/find-all-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
 import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
 import { Roles } from '../commom/decorators/roles_decorator.decorator'
-import { FindOneTicketParams } from './dto/find-one-ticket.dto';
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
 import { BuyTicketSE, CreateTicketSE, FindAllEventTypesSE, FindAllTicketsSE, FindOneTicketSE, FindOneTypeSE, FindUserTicketsSE, UpdateTicketSE, UpdateTypeSE } from './tickets_swagger_Exemple';
 

@@ -1,11 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { BuyTicketDto } from './dto/buy-ticket.dto';
 import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
 import { FindAllTicketDto } from './dto/find-all-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
-import { FindOneTicketParams } from './dto/find-one-ticket.dto';
 
 @Injectable()
 export class TicketService {
