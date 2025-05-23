@@ -5,7 +5,7 @@ import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
 import { FindAllTicketDto } from './dto/find-all-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
-import { FindOneTicketDto } from './dto/find-one-ticket.dto';
+import { FindOneTicketParams } from './dto/find-one-ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -37,7 +37,7 @@ export class TicketService {
     return { message: "Ticket type deleted successfully!" }
   }
 
-  async findAllTypes(eventId: number) {
+  async findAllEventTypes(eventId: number) {
     const types = await this.prisma.tb_ticket_type.findMany({
       where: {
         eventId
@@ -95,9 +95,9 @@ export class TicketService {
     }
   }
 
-  async buyTicket(buyTicketDto: BuyTicketDto, userId: number) {
+  async buyTicket(ticketTypeId: number, userId: number) {
     const ticketData = await this.prisma.$transaction(async (tx) => {
-      const ticketType = await this.findOneType(buyTicketDto.ticketTypeId);
+      const ticketType = await this.findOneType(ticketTypeId);
 
       if (!ticketType || ticketType.quantity <= 0) {
         throw new BadRequestException('Ticket type out of stock!');
@@ -107,7 +107,7 @@ export class TicketService {
 
       const ticket = await tx.tb_ticket.create({
         data: {
-          ...buyTicketDto,
+          ticketTypeId,
           ticketName,
           userId,
         },
@@ -184,6 +184,7 @@ export class TicketService {
       select: {
         id: true,
         ticketTypeId: true,
+        ticketName: true,
         userId: true,
         user: {
           select: {
@@ -210,6 +211,7 @@ export class TicketService {
       ticket_type_id: ticket.ticketTypeId,
       user_id: ticket.userId,
       event_id: ticket.ticket_type.event.id,
+      ticket_name: ticket.ticketName,
       event_name: ticket.ticket_type.event.name,
       ticket_type_name: ticket.ticket_type.name,
       user_name: ticket.user.name,
@@ -217,10 +219,10 @@ export class TicketService {
     }));
   }
 
-  async findOneTicket(findOneTicketDto: FindOneTicketDto) {
+  async findOneTicket(id: number) {
     const ticket = await this.prisma.tb_ticket.findFirst({
       where: {
-        ...findOneTicketDto
+        id
       },
       select: {
         id: true,
@@ -282,7 +284,16 @@ export class TicketService {
   }
 
   async deleteTicket(id: number) {
-    await this.prisma.tb_ticket.delete({ where: { id } });
-    return { message: "Ticket deleted successfully!" }
+    return this.prisma.$transaction(async (tx) => {
+      const { ticket_type_id } = await this.findOneTicket(id);
+
+      await tx.tb_ticket_type.update({
+        where: { id: ticket_type_id },
+        data: { quantity: { increment: 1 } },
+      })
+
+      await tx.tb_ticket.delete({ where: { id } });
+      return { message: "Ticket deleted successfully!" }
+    })
   }
 }
