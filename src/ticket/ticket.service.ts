@@ -5,7 +5,7 @@ import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
 import { FindAllTicketDto } from './dto/find-all-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
-import { FindOneTicketDto } from './dto/find-one-ticket.dto';
+import { FindOneTicketParams } from './dto/find-one-ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -95,9 +95,9 @@ export class TicketService {
     }
   }
 
-  async buyTicket(buyTicketDto: BuyTicketDto, userId: number) {
+  async buyTicket(ticketTypeId: number, userId: number) {
     const ticketData = await this.prisma.$transaction(async (tx) => {
-      const ticketType = await this.findOneType(buyTicketDto.ticketTypeId);
+      const ticketType = await this.findOneType(ticketTypeId);
 
       if (!ticketType || ticketType.quantity <= 0) {
         throw new BadRequestException('Ticket type out of stock!');
@@ -107,7 +107,7 @@ export class TicketService {
 
       const ticket = await tx.tb_ticket.create({
         data: {
-          ...buyTicketDto,
+          ticketTypeId,
           ticketName,
           userId,
         },
@@ -219,10 +219,10 @@ export class TicketService {
     }));
   }
 
-  async findOneTicket(findOneTicketDto: FindOneTicketDto) {
+  async findOneTicket(id: number) {
     const ticket = await this.prisma.tb_ticket.findFirst({
       where: {
-        ...findOneTicketDto
+        id
       },
       select: {
         id: true,
