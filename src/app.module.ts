@@ -10,9 +10,22 @@ import { PartyHouseModule } from './party_house/party_house.module';
 import { PdfModule } from './pdf/pdf.module';
 import { BucketSupabaseModule } from './bucket_supabase/bucket_supabase.module';
 import { TicketModule } from './ticket/ticket.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
-  imports: [UsersModule, PrismaModule, HashingModule, ArtistModule, EventModule, ArtistEventModule, PartyHouseModule, PdfModule, BucketSupabaseModule, TicketModule],
+  imports: [
+    UsersModule,
+    PrismaModule,
+    HashingModule,
+    ArtistModule,
+    EventModule,
+    ArtistEventModule,
+    PartyHouseModule,
+    PdfModule,
+    BucketSupabaseModule,
+    TicketModule,
+    EmailModule
+  ],
   controllers: [],
   providers: [
     {
