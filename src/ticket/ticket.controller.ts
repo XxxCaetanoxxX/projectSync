@@ -17,7 +17,7 @@ import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
 import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
 import { Roles } from '../commom/decorators/roles_decorator.decorator'
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
-import { BuyTicketSE, CreateTicketSE, FindAllEventTypesSE, FindAllTicketsSE, FindOneTicketSE, FindOneTypeSE, FindUserTicketsSE, UpdateTicketSE, UpdateTypeSE } from './tickets_swagger_Exemple';
+import { BuyTicketSE, CreateTicketSE, FindAllEventTypesSE, FindAllTicketsSE, FindOneTicketSE, FindOneTypeSE, FindUserTicketsSE, UpdateTicketSE, UpdateTypeSE } from './tickets_swagger_exemple';
 import { Public } from 'src/commom/decorators/public_decorator.decorator';
 
 @Controller('ticket')
