@@ -7,8 +7,6 @@ import { LoginDto } from './dto/login.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
 import * as jwt from 'jsonwebtoken';
-import * as path from 'path';
-import * as fs from 'node:fs/promises';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 
 @Injectable()
@@ -43,7 +41,7 @@ export class UsersService {
     const isValidPassword = await this.hashingService.compare(password, user.password);
     if (!isValidPassword) throw new UnauthorizedException('Invalid password!');
 
-    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY, { expiresIn: '3h' });
+    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY);
   }
 
   async create({ password, ...createUserDto }: CreateUserDto) {
@@ -180,29 +178,31 @@ export class UsersService {
     } catch (error) {
       throw new InternalServerErrorException("Error to upload image!");
     }
-
-  }
-
-  async buyTicket(eventId: number, userId: number) {
-    await this.prisma.tb_event_participant.create({ data: { eventId, userId } });
-    return { message: "Ticket bought successfully!" }
   }
 
   async getEventParticipants(eventId: number) {
-    const users = await this.prisma.tb_event_participant.findMany({
-      where: { eventId },
+    const tickets = await this.prisma.tb_ticket.findMany({
+      where: {
+        ticket_type: {
+          eventId
+        },
+      },
       include: {
         user: {
           select: {
+            id: true,
             name: true,
-            email: true,
+            email: true
           }
         }
       }
-    });
+    })
+
+    const participants = tickets.map(ticket => ticket.user);
+
     return {
       message: "Event participants found successfully!",
-      data: users
+      data: participants
     }
   }
 }

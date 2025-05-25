@@ -6,7 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ArtistEventService {
   constructor(private readonly prisma: PrismaService) { }
   async create(createArtistEventDto: CreateArtistEventDto) {
-    const artist_event = await this.prisma.tb_artist_event.create({ data: createArtistEventDto });
+    const artist_event = await this.prisma.tb_artist_on_event.create({ data: createArtistEventDto });
     return artist_event;
   }
 
@@ -23,6 +23,6 @@ export class ArtistEventService {
   // }
 
   async remove(id: number) {
-    return await this.prisma.tb_artist_event.delete({ where: { id } });
+    return await this.prisma.tb_artist_on_event.delete({ where: { id } });
   }
 }
