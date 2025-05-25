@@ -18,6 +18,7 @@ import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
 import { Roles } from '../commom/decorators/roles_decorator.decorator'
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
 import { BuyTicketSE, CreateTicketSE, FindAllEventTypesSE, FindAllTicketsSE, FindOneTicketSE, FindOneTypeSE, FindUserTicketsSE, UpdateTicketSE, UpdateTypeSE } from './tickets_swagger_Exemple';
+import { Public } from 'src/commom/decorators/public_decorator.decorator';
 
 @Controller('ticket')
 export class TicketController {
@@ -35,7 +36,7 @@ export class TicketController {
     return this.ticketService.createType(createTicketTypeDto);
   }
 
-  @Roles('PARTICIPANT', 'ORGANIZER', 'ADMIN')
+  @Public()
   @Get('types/:eventId')
   @ApiResponseUtil({
     status: 200,
