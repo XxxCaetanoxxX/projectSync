@@ -131,7 +131,7 @@ export class TicketService {
         data: { quantity: ticketType.quantity - 1 },
       });
 
-      this.emailService.ticketBoughtEmail({ username: ticket.user.name, ticketName, eventName: ticketType.event_name, email: ticket.user.email })
+      this.emailService.ticketBoughtEmail({ username: ticket.user.name, ticketName, eventName: ticketType.event_name, email: ticket.user.email, ticketId: ticket.id });
 
       return ticket
     });

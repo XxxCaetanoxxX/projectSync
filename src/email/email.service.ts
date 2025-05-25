@@ -35,6 +35,7 @@ export class EmailService {
         Aqui estão os detalhes do seu ingresso:
       </p>
       <ul style="list-style: none; padding: 0;">
+      <li><strong>ID do ingresso:</strong> ${dto.ticketId}</li>
         <li><strong>Evento:</strong> ${dto.eventName}</li>
         <li><strong>Ingresso:</strong> ${dto.ticketName}</li>
       </ul>
