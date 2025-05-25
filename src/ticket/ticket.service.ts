@@ -4,10 +4,14 @@ import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
 import { FindAllTicketDto } from './dto/find-all-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class TicketService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService
+  ) { }
   async createType(createTicketTypeDto: CreateTicketTypeDto) {
     const ticket = await this.prisma.tb_ticket_type.create(
       {
@@ -114,7 +118,8 @@ export class TicketService {
           ticketName: true,
           user: {
             select: {
-              name: true
+              name: true,
+              email: true
             }
           }
         }
@@ -125,6 +130,8 @@ export class TicketService {
         where: { id: ticketType.id },
         data: { quantity: ticketType.quantity - 1 },
       });
+
+      this.emailService.ticketBoughtEmail({ username: ticket.user.name, ticketName, eventName: ticketType.event_name, email: ticket.user.email })
 
       return ticket
     });
