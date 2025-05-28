@@ -24,10 +24,12 @@ model tb_user {
 
 model th_user_hist {
   id                   Int      @id @default(autoincrement())
+  modified_by_id       Int
+  modified_by_name     String
   user_id              Int
-  user_name            String
   operation            String
   endpoint_modificador String
+  changes              String   @default("")
   dt_criacao           DateTime @default(now())
 }
 
@@ -51,10 +53,12 @@ model tb_ticket_type {
 
 model th_ticket_type_hist {
   id                   Int      @id @default(autoincrement())
-  user_id              Int
-  user_name            String
+  modified_by_id       Int
+  modified_by_name     String
+  ticket_type_id       Int
   operation            String
   endpoint_modificador String
+  changes              String   @default("")
   dt_criacao           DateTime @default(now())
 }
 

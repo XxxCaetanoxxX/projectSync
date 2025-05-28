@@ -123,7 +123,7 @@ export class UsersService {
 
 
   async update(id: number, { ...updateUserDto }: UpdateUserDto) {
-    return await this.prisma.tb_user.update({
+    return await this.prisma.withAudit.tb_user.update({
       where: {
         id
       },

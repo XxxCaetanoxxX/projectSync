@@ -25,7 +25,7 @@ export class TicketService {
   }
 
   async updateType(id: number, updateTicketTypeDto: UpdateTicketTypeDto) {
-    return await this.prisma.tb_ticket_type.update({
+    return await this.prisma.withAudit.tb_ticket_type.update({
       where: {
         id
       },
