@@ -22,6 +22,15 @@ model tb_user {
   tickets         tb_ticket[] // Relacionamento com ingressos comprados
 }
 
+model th_user_hist {
+  id                   Int      @id @default(autoincrement())
+  user_id              Int
+  user_name            String
+  operation            String
+  endpoint_modificador String
+  dt_criacao           DateTime @default(now())
+}
+
 model tb_user_image {
   id     Int     @id @default(autoincrement())
   userId Int     @unique
