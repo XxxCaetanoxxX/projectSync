@@ -23,14 +23,12 @@ model tb_user {
 }
 
 model th_user_hist {
-  id                   Int      @id @default(autoincrement())
+  id                   Int    @id @default(autoincrement())
   modified_by_id       Int
   modified_by_name     String
   user_id              Int
   operation            String
   endpoint_modificador String
-  changes              String   @default("")
-  dt_criacao           DateTime @default(now())
 }
 
 model tb_user_image {
@@ -41,25 +39,28 @@ model tb_user_image {
 }
 
 model tb_ticket_type {
-  id       Int      @id @default(autoincrement())
-  name     String
-  price    Float
-  quantity Int
-  eventId  Int
-  event    tb_event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  id           Int       @id @default(autoincrement())
+  name         String
+  price        Float
+  quantity     Int
+  eventId      Int
+  dt_criacao   DateTime?
+  dt_alteracao DateTime?
+  operation    String
+  event        tb_event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   tickets tb_ticket[]
 }
 
 model th_ticket_type_hist {
-  id                   Int      @id @default(autoincrement())
+  id                   Int       @id @default(autoincrement())
   modified_by_id       Int
   modified_by_name     String
   ticket_type_id       Int
   operation            String
   endpoint_modificador String
-  changes              String   @default("")
-  dt_criacao           DateTime @default(now())
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
 }
 
 model tb_ticket {
@@ -81,7 +82,6 @@ model th_ticket_hist {
   ticket_id            Int
   operation            String
   endpoint_modificador String
-  changes              String   @default("")
   dt_criacao           DateTime @default(now())
 }
 
@@ -104,7 +104,6 @@ model th_event_hist {
   event_id             Int
   operation            String
   endpoint_modificador String
-  changes              String   @default("")
   dt_criacao           DateTime @default(now())
 }
 
@@ -128,7 +127,6 @@ model th_artist_hist {
   artist_id            Int
   operation            String
   endpoint_modificador String
-  changes              String   @default("")
   dt_criacao           DateTime @default(now())
 }
 
@@ -156,7 +154,6 @@ model th_party_house_hist {
   party_house_id       Int
   operation            String
   endpoint_modificador String
-  changes              String   @default("")
   dt_criacao           DateTime @default(now())
 }
 

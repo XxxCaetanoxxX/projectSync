@@ -7,9 +7,7 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                 async create({ model, operation, args, query }) {
 
                     if (model === 'tb_user' && operation === 'create') {
-                        const oldData = {};
                         const newData = await query(args);
-                        const changes = deepDiff(oldData, newData);
                         const tableName = model.replace('tb_', '');
                         const objectIdField = `${tableName}_id`;
                         await prisma[`th_${tableName}_hist`].create({
@@ -17,19 +15,22 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                                 modified_by_id: 0,
                                 modified_by_name: 'Created by public endpoint',
                                 [objectIdField]: newData.id,
-                                operation,
+                                ...createAudit(),
                                 endpoint_modificador: url,
-                                changes: JSON.stringify(changes),
-                                dt_criacao: new Date()
                             }
                         })
 
                         return newData
                     }
 
-                    const oldData = {};
+                    args.data ={
+                        ...args.data,
+                        ...createAudit(),
+                    }
+
+                    console.log(args)
+
                     const newData = await query(args);
-                    const changes = deepDiff(oldData, newData);
                     const tableName = model.replace('tb_', '');
                     const objectIdField = `${tableName}_id`;
                     await prisma[`th_${tableName}_hist`].create({
@@ -37,11 +38,9 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                             modified_by_id: user.id,
                             modified_by_name: user.name,
                             [objectIdField]: newData.id,
-                            operation,
+                            ...createAudit(),
                             endpoint_modificador: url,
-                            changes: JSON.stringify(changes),
-                            dt_criacao: new Date()
-                        }
+                        },
                     })
 
                     return newData
@@ -53,7 +52,6 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                         where: args.where
                     });
                     const newData = await query(args);
-                    const changes = deepDiff(oldData, newData);
                     const tableName = model.replace('tb_', '');
                     const objectIdField = `${tableName}_id`;
 
@@ -62,10 +60,8 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                             modified_by_id: user.id,
                             modified_by_name: user.name,
                             [objectIdField]: newData.id,
-                            operation,
+                            ...updateAudit(),
                             endpoint_modificador: url,
-                            changes: JSON.stringify(changes),
-                            dt_criacao: new Date()
                         }
                     })
 
@@ -78,7 +74,6 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                         where: args.where
                     });
                     const newData = await query(args);
-                    const changes = deepDiff(oldData, newData);
                     const tableName = model.replace('tb_', '');
                     const objectIdField = `${tableName}_id`;
 
@@ -89,7 +84,6 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                             [objectIdField]: newData.id,
                             operation,
                             endpoint_modificador: url,
-                            changes: JSON.stringify(changes),
                             dt_criacao: new Date()
                         }
                     })
@@ -128,4 +122,18 @@ function deepDiff(obj1: any, obj2: any) {
     }
 
     return differences
+}
+
+function createAudit(){
+    return {
+        operation: 'CREATE',
+        dt_criacao: new Date()
+    }
+}
+
+function updateAudit(){
+    return {
+        operation: 'UPDATE',
+        dt_alteracao: new Date()
+    }
 }
