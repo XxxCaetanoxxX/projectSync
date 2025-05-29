@@ -71,6 +71,31 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
 
                     return newData;
                 },
+
+                async delete({ model, operation, args, query }) {
+                    const modelClient = prisma[model as keyof typeof prisma] as any
+                    const oldData = await modelClient.findUnique({
+                        where: args.where
+                    });
+                    const newData = await query(args);
+                    const changes = deepDiff(oldData, newData);
+                    const tableName = model.replace('tb_', '');
+                    const objectIdField = `${tableName}_id`;
+
+                    await prisma[`th_${tableName}_hist`].create({
+                        data: {
+                            modified_by_id: user.id,
+                            modified_by_name: user.name,
+                            [objectIdField]: newData.id,
+                            operation,
+                            endpoint_modificador: url,
+                            changes: JSON.stringify(changes),
+                            dt_criacao: new Date()
+                        }
+                    })
+
+                    return newData;
+                }
             }
         }
     })

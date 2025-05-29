@@ -13,6 +13,8 @@ export class TicketService {
     private readonly prisma: PrismaExtendedService,
     private readonly emailService: EmailService
   ) { }
+
+  //TYPE
   async createType(createTicketTypeDto: CreateTicketTypeDto) {
     const ticket = await this.prisma.withAudit.tb_ticket_type.create(
       {
@@ -36,7 +38,7 @@ export class TicketService {
   }
 
   async deleteType(id: number) {
-    await this.prisma.tb_ticket_type.delete({ where: { id } });
+    await this.prisma.withAudit.tb_ticket_type.delete({ where: { id } });
     return { message: "Ticket type deleted successfully!" }
   }
 
@@ -98,8 +100,10 @@ export class TicketService {
     }
   }
 
+
+  //TICKET
   async buyTicket(ticketTypeId: number, userId: number) {
-    const ticketData = await this.prisma.$transaction(async (tx) => {
+    const ticketData = await this.prisma.withAudit.$transaction(async (tx) => {
       const ticketType = await this.findOneType(ticketTypeId);
 
       if (!ticketType || ticketType.quantity <= 0) {
@@ -275,7 +279,7 @@ export class TicketService {
   }
 
   async updateTicket(id: number, updateTicketDto: UpdateTicketDto) {
-    const ticket = await this.prisma.tb_ticket.update({
+    const ticket = await this.prisma.withAudit.tb_ticket.update({
       where: {
         id
       },
@@ -290,7 +294,7 @@ export class TicketService {
   }
 
   async deleteTicket(id: number) {
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.withAudit.$transaction(async (tx) => {
       const { ticket_type_id } = await this.findOneTicket(id);
 
       await tx.tb_ticket_type.update({

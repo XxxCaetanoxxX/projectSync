@@ -74,6 +74,17 @@ model tb_ticket {
   @@unique([ticketTypeId, userId])
 }
 
+model th_ticket_hist {
+  id                   Int      @id @default(autoincrement())
+  modified_by_id       Int
+  modified_by_name     String
+  ticket_id            Int
+  operation            String
+  endpoint_modificador String
+  changes              String   @default("")
+  dt_criacao           DateTime @default(now())
+}
+
 model tb_event {
   id           Int                  @id @default(autoincrement())
   name         String
@@ -84,6 +95,17 @@ model tb_event {
   party_house  tb_party_house       @relation(fields: [partyHouseId], references: [id], onDelete: Cascade)
   images       tb_event_image[]
   ticketTypes  tb_ticket_type[]
+}
+
+model th_event_hist {
+  id                   Int      @id @default(autoincrement())
+  modified_by_id       Int
+  modified_by_name     String
+  event_id             Int
+  operation            String
+  endpoint_modificador String
+  changes              String   @default("")
+  dt_criacao           DateTime @default(now())
 }
 
 model tb_event_image {
@@ -97,6 +119,17 @@ model tb_artist {
   id     Int                  @id @default(autoincrement())
   name   String
   events tb_artist_on_event[]
+}
+
+model th_artist_hist {
+  id                   Int      @id @default(autoincrement())
+  modified_by_id       Int
+  modified_by_name     String
+  artist_id            Int
+  operation            String
+  endpoint_modificador String
+  changes              String   @default("")
+  dt_criacao           DateTime @default(now())
 }
 
 model tb_artist_on_event {
@@ -114,6 +147,17 @@ model tb_party_house {
   name    String
   address String
   events  tb_event[]
+}
+
+model th_party_house_hist {
+  id                   Int      @id @default(autoincrement())
+  modified_by_id       Int
+  modified_by_name     String
+  party_house_id       Int
+  operation            String
+  endpoint_modificador String
+  changes              String   @default("")
+  dt_criacao           DateTime @default(now())
 }
 
 enum Role {

@@ -96,7 +96,7 @@ export class EventController {
     example: DeleteEventSE
   })
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.eventService.remove(id);
+    return this.eventService.delete(id);
   }
 
   @Roles('ADMIN', 'ORGANIZER')

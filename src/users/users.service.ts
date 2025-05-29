@@ -133,8 +133,8 @@ export class UsersService {
     });
   }
 
-  async remove(id: number) {
-    return await this.prisma.tb_user.delete({
+  async delete(id: number) {
+    return await this.prisma.withAudit.tb_user.delete({
       where: { id }
     });
   }

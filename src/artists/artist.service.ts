@@ -3,12 +3,13 @@ import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { FindAllArtistsDto } from './dto/find-all-artists.dto';
+import { PrismaExtendedService } from '../prisma/prisma-extended.service';
 
 @Injectable()
 export class ArtistService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaExtendedService) { }
   async create(createArtistDto: CreateArtistDto) {
-    const artist = await this.prisma.tb_artist.create({ data: createArtistDto });
+    const artist = await this.prisma.withAudit.tb_artist.create({ data: createArtistDto });
     return artist;
   }
 
@@ -50,7 +51,7 @@ export class ArtistService {
   }
 
   async update(id: number, { ...updateArtistDto }: UpdateArtistDto) {
-    return await this.prisma.tb_artist.update({
+    return await this.prisma.withAudit.tb_artist.update({
       where: {
         id
       },
@@ -59,7 +60,7 @@ export class ArtistService {
   }
 
   async remove(id: number) {
-    return await this.prisma.tb_artist.delete({
+    return await this.prisma.withAudit.tb_artist.delete({
       where: {
         id
       }
