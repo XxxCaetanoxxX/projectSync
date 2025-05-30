@@ -6,40 +6,39 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
             $allModels: {
                 async create({ model, operation, args, query }) {
 
-                    if (model === 'tb_user' && operation === 'create') {
-                        const newData = await query(args);
-                        const tableName = model.replace('tb_', '');
-                        const objectIdField = `${tableName}_id`;
-                        await prisma[`th_${tableName}_hist`].create({
-                            data: {
-                                modified_by_id: 0,
-                                modified_by_name: 'Created by public endpoint',
-                                [objectIdField]: newData.id,
-                                ...createAudit(),
-                                endpoint_modificador: url,
-                            }
-                        })
+                    // if (model === 'tb_user' && operation === 'create') {
+                    //     const newData = await query(args);
+                    //     const tableName = model.replace('tb_', '');
+                    //     const objectIdField = `${tableName}_id`;
+                    //     await prisma[`th_${tableName}_hist`].create({
+                    //         data: {
+                    //             modified_by_id: 0,
+                    //             modified_by_name: 'Created by public endpoint',
+                    //             [objectIdField]: newData.id,
+                    //             ...createAudit(),
+                    //             endpoint_modificador: url,
+                    //         }
+                    //     })
 
-                        return newData
-                    }
+                    //     return newData
+                    // }
 
-                    args.data ={
+                    args.data = {
                         ...args.data,
-                        ...createAudit(),
+                        ...createAudit(url, user.id, user.name),
                     }
 
-                    console.log(args)
-
-                    const newData = await query(args);
                     const tableName = model.replace('tb_', '');
                     const objectIdField = `${tableName}_id`;
+                    //query(args) é o que executa de fato a operação do Prisma 
+                    //(como create, update, etc.) dentro de uma extensão.
+                    //E ao mesmo tempo armazena a response
+                    const newData = await query(args);
+                    const { id, ...res } = newData; //remove o id da response para nao dar conflito
                     await prisma[`th_${tableName}_hist`].create({
                         data: {
-                            modified_by_id: user.id,
-                            modified_by_name: user.name,
-                            [objectIdField]: newData.id,
-                            ...createAudit(),
-                            endpoint_modificador: url,
+                            [objectIdField]: id, //repassa o id para o hist
+                            ...res
                         },
                     })
 
@@ -94,44 +93,18 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
         }
     })
 
-function deepDiff(obj1: any, obj2: any) {
-    const differences = {};
-
-    for (let key in obj1) {
-
-        if (obj2.hasOwnProperty(key)) {
-
-            if (typeof obj1[key] === 'object' && typeof obj2[key] === 'object') {
-                const nestedDiff = deepDiff(obj1[key], obj2[key]);
-                if (Object.keys(nestedDiff).length > 0) {
-                    differences[key] = nestedDiff;
-                }
-            } else if (obj1[key] !== obj2[key]) {
-                differences[key] = { oldValue: obj1[key], newValue: obj2[key] };
-            }
-
-        } else {
-            differences[key] = { oldValue: obj1[key], newValue: undefined };
-        }
-    }
-
-    for (let key in obj2) {
-        if (!obj1.hasOwnProperty(key)) {
-            differences[key] = { oldValue: undefined, newValue: obj2[key] };
-        }
-    }
-
-    return differences
-}
-
-function createAudit(){
+function createAudit(url, user_id, user_name) {
     return {
         operation: 'CREATE',
-        dt_criacao: new Date()
+        dt_criacao: new Date(),
+        endpoint_modificador: url,
+        nu_versao: 1,
+        modified_by_id: user_id,
+        modified_by_name: user_name
     }
 }
 
-function updateAudit(){
+function updateAudit() {
     return {
         operation: 'UPDATE',
         dt_alteracao: new Date()
