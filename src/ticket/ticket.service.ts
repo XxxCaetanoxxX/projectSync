@@ -32,14 +32,15 @@ export class TicketService {
         id
       },
       data: {
+        nu_versao: { increment: 1 },
         ...updateTicketTypeDto
       }
     })
   }
 
   async deleteType(id: number) {
-    await this.prisma.withAudit.tb_ticket_type.delete({ where: { id } });
-    return { message: "Ticket type deleted successfully!" }
+    const deletedType = await this.prisma.withAudit.tb_ticket_type.delete({ where: { id } });
+    return { message: "Ticket type deleted successfully!", data: deletedType }
   }
 
   async findAllEventTypes(eventId: number) {

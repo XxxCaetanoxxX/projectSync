@@ -128,15 +128,17 @@ export class UsersService {
         id
       },
       data: {
+        nu_versao: { increment: 1 },
         ...updateUserDto
       },
     });
   }
 
   async delete(id: number) {
-    return await this.prisma.withAudit.tb_user.delete({
+    const user = await this.prisma.withAudit.tb_user.delete({
       where: { id }
     });
+    return {message: "User deleted successfully!", data: user}
   }
 
   async uploadAvatarImage(id: number, file: Express.Multer.File) {

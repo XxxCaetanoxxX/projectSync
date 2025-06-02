@@ -7,12 +7,12 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                 async create({ model, operation, args, query }) {
 
                     if (model === 'tb_user' && operation === 'create') {
-                        args.data ={
+                        args.data = {
                             ...args.data,
                             ...createAudit(url, 0, 'Created by public endpoint'),
                         }
                         const newData = await query(args);
-                        const {id, ...res} = newData;
+                        const { id, ...res } = newData;
                         const tableName = model.replace('tb_', '');
                         const objectIdField = `${tableName}_id`;
                         await prisma[`th_${tableName}_hist`].create({
@@ -48,21 +48,20 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                 },
 
                 async update({ model, operation, args, query }) {
-                    const modelClient = prisma[model as keyof typeof prisma] as any
-                    const oldData = await modelClient.findUnique({
-                        where: args.where
-                    });
+                    args.data = {
+                        ...args.data,
+                        ...updateAudit(url, user.id, user.name),
+                    }
+
                     const newData = await query(args);
+                    const { id, ...res } = newData;
                     const tableName = model.replace('tb_', '');
                     const objectIdField = `${tableName}_id`;
 
                     await prisma[`th_${tableName}_hist`].create({
                         data: {
-                            modified_by_id: user.id,
-                            modified_by_name: user.name,
-                            [objectIdField]: newData.id,
-                            ...updateAudit(),
-                            endpoint_modificador: url,
+                            [objectIdField]: id,
+                            ...res
                         }
                     })
 
@@ -70,26 +69,28 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                 },
 
                 async delete({ model, operation, args, query }) {
-                    const modelClient = prisma[model as keyof typeof prisma] as any
-                    const oldData = await modelClient.findUnique({
-                        where: args.where
-                    });
-                    const newData = await query(args);
+                    const response = await query(args);
                     const tableName = model.replace('tb_', '');
                     const objectIdField = `${tableName}_id`;
+                    const {
+                        id,
+                        dt_alteracao,
+                        operation: _operation,
+                        endpoint_modificador,
+                        modified_by_id,
+                        modified_by_name,
+                        ...cleanedData
+                    } = response as any;
 
                     await prisma[`th_${tableName}_hist`].create({
                         data: {
-                            modified_by_id: user.id,
-                            modified_by_name: user.name,
-                            [objectIdField]: newData.id,
-                            operation,
-                            endpoint_modificador: url,
-                            dt_criacao: new Date()
+                            [objectIdField]: id,
+                            ...cleanedData,
+                            ...deleteAudit(url, user.id, user.name),
                         }
                     })
 
-                    return newData;
+                    return response;
                 }
             }
         }
@@ -106,9 +107,22 @@ function createAudit(url, user_id, user_name) {
     }
 }
 
-function updateAudit() {
+function updateAudit(url, user_id, user_name) {
     return {
         operation: 'UPDATE',
-        dt_alteracao: new Date()
+        dt_alteracao: new Date(),
+        endpoint_modificador: url,
+        modified_by_id: user_id,
+        modified_by_name: user_name
+    }
+}
+
+function deleteAudit(url, user_id, user_name) {
+    return {
+        operation: 'DELETE',
+        dt_alteracao: new Date(),
+        endpoint_modificador: url,
+        modified_by_id: user_id,
+        modified_by_name: user_name
     }
 }
