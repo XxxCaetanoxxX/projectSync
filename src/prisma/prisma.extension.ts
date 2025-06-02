@@ -37,10 +37,11 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                     //E ao mesmo tempo armazena a response
                     const newData = await query(args);
                     const { id, ...res } = newData; //remove o id da response para nao dar conflito
+                    const cleanedData = removeObjectsFromJoin(res);
                     await prisma[`th_${tableName}_hist`].create({
                         data: {
                             [objectIdField]: id, //repassa o id para o hist
-                            ...res
+                            ...cleanedData
                         },
                     })
 
@@ -55,13 +56,14 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
 
                     const newData = await query(args);
                     const { id, ...res } = newData;
+                    const cleanedData = removeObjectsFromJoin(res);
                     const tableName = model.replace('tb_', '');
                     const objectIdField = `${tableName}_id`;
 
                     await prisma[`th_${tableName}_hist`].create({
                         data: {
                             [objectIdField]: id,
-                            ...res
+                            ...cleanedData
                         }
                     })
 
@@ -125,4 +127,15 @@ function deleteAudit(url, user_id, user_name) {
         modified_by_id: user_id,
         modified_by_name: user_name
     }
+}
+
+//essa funcao vai remover os joins das queryes
+function removeObjectsFromJoin(obj: Record<string, any>): Record<string, any> {
+    const result: Record<string, any> = {};
+    for (const key in obj) {
+        if (typeof obj[key] !== 'object' || obj[key] instanceof Date || obj[key] === null) {
+            result[key] = obj[key];
+        }
+    }
+    return result;
 }

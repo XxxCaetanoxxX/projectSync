@@ -122,13 +122,22 @@ export class TicketService {
         select: {
           id: true,
           ticketName: true,
+          ticketTypeId: true,
+          userId: true,
+          dt_alteracao: true,
+          dt_criacao: true,
+          endpoint_modificador: true,
+          nu_versao: true,
+          modified_by_id: true,
+          modified_by_name: true,
+          operation: true,
           user: {
             select: {
               name: true,
               email: true
             }
           }
-        }
+        },
       },
       );
 
@@ -238,7 +247,8 @@ export class TicketService {
       select: {
         id: true,
         ticketName: true,
-        createdAt: true,
+        dt_criacao: true,
+        dt_alteracao: true,
         ticketTypeId: true,
         userId: true,
         user: {
@@ -268,7 +278,7 @@ export class TicketService {
     return {
       id: ticket.id,
       ticket_name: ticket.ticketName,
-      created_at: ticket.createdAt,
+      created_at: ticket.dt_criacao,
       ticket_type_id: ticket.ticketTypeId,
       user_id: ticket.userId,
       event_id: ticket.ticket_type.event.id,
@@ -285,6 +295,7 @@ export class TicketService {
         id
       },
       data: {
+        nu_versao: { increment: 1 },
         ...updateTicketDto
       }
     })

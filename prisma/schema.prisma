@@ -29,14 +29,14 @@ model tb_user {
 }
 
 model th_user_hist {
-  id                   Int    @id @default(autoincrement())
+  id                   Int       @id @default(autoincrement())
   name                 String
-  cpf                  String         
-  email                String         
-  phone                String         
+  cpf                  String
+  email                String
+  phone                String
   password             String
   role                 Role
-  imageId              Int?           
+  imageId              Int?
   user_id              Int
   dt_criacao           DateTime?
   dt_alteracao         DateTime?
@@ -88,47 +88,70 @@ model th_ticket_type_hist {
 }
 
 model tb_ticket {
-  id           Int            @id @default(autoincrement())
-  ticketName   String
-  ticketTypeId Int
-  userId       Int
-  ticket_type  tb_ticket_type @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
-  user         tb_user        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt    DateTime       @default(now())
+  id                   Int            @id @default(autoincrement())
+  ticketName           String
+  ticketTypeId         Int
+  userId               Int
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
+  ticket_type          tb_ticket_type @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  user                 tb_user        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([ticketTypeId, userId])
 }
 
 model th_ticket_hist {
-  id                   Int      @id @default(autoincrement())
-  modified_by_id       Int
-  modified_by_name     String
+  id                   Int       @id @default(autoincrement())
   ticket_id            Int
-  operation            String
-  endpoint_modificador String
-  dt_criacao           DateTime @default(now())
+  ticketName           String
+  ticketTypeId         Int
+  userId               Int
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
 }
 
 model tb_event {
-  id           Int                  @id @default(autoincrement())
-  name         String
-  organizerId  Int
-  partyHouseId Int
-  artists      tb_artist_on_event[]
-  organizer    tb_user              @relation("OrganizerToEvent", fields: [organizerId], references: [id])
-  party_house  tb_party_house       @relation(fields: [partyHouseId], references: [id], onDelete: Cascade)
-  images       tb_event_image[]
-  ticketTypes  tb_ticket_type[]
+  id                   Int                  @id @default(autoincrement())
+  name                 String
+  organizerId          Int
+  partyHouseId         Int
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
+  artists              tb_artist_on_event[]
+  organizer            tb_user              @relation("OrganizerToEvent", fields: [organizerId], references: [id])
+  party_house          tb_party_house       @relation(fields: [partyHouseId], references: [id], onDelete: Cascade)
+  images               tb_event_image[]
+  ticketTypes          tb_ticket_type[]
 }
 
 model th_event_hist {
-  id                   Int      @id @default(autoincrement())
-  modified_by_id       Int
-  modified_by_name     String
+  id                   Int       @id @default(autoincrement())
   event_id             Int
-  operation            String
-  endpoint_modificador String
-  dt_criacao           DateTime @default(now())
+  name                 String
+  organizerId          Int
+  partyHouseId         Int
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
 }
 
 model tb_event_image {
@@ -139,19 +162,29 @@ model tb_event_image {
 }
 
 model tb_artist {
-  id     Int                  @id @default(autoincrement())
-  name   String
-  events tb_artist_on_event[]
+  id                   Int                  @id @default(autoincrement())
+  name                 String
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
+  events               tb_artist_on_event[]
 }
 
 model th_artist_hist {
-  id                   Int      @id @default(autoincrement())
-  modified_by_id       Int
-  modified_by_name     String
+  id                   Int       @id @default(autoincrement())
   artist_id            Int
-  operation            String
-  endpoint_modificador String
-  dt_criacao           DateTime @default(now())
+  name                 String
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
 }
 
 model tb_artist_on_event {
@@ -165,20 +198,31 @@ model tb_artist_on_event {
 }
 
 model tb_party_house {
-  id      Int        @id @default(autoincrement())
-  name    String
-  address String
-  events  tb_event[]
+  id                   Int        @id @default(autoincrement())
+  name                 String
+  address              String
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
+  events               tb_event[]
 }
 
 model th_party_house_hist {
-  id                   Int      @id @default(autoincrement())
-  modified_by_id       Int
-  modified_by_name     String
+  id                   Int       @id @default(autoincrement())
   party_house_id       Int
-  operation            String
-  endpoint_modificador String
-  dt_criacao           DateTime @default(now())
+  name                 String
+  address              String
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
 }
 
 enum Role {

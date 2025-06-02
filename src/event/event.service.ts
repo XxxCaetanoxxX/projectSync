@@ -166,7 +166,12 @@ export class EventService {
       throw new BadRequestException("You are not allowed to update this event!");
     }
 
-    return await this.prisma.withAudit.tb_event.update({ where: { id }, data: { ...updateEventDto } });
+    return await this.prisma.withAudit.tb_event.update({
+      where: { id }, data: {
+        nu_versao: { increment: 1 },
+        ...updateEventDto
+      }
+    });
   }
 
   async delete(id: number) {

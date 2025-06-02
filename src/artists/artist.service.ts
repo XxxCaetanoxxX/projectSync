@@ -55,7 +55,9 @@ export class ArtistService {
       where: {
         id
       },
-      data: { ...updateArtistDto }
+      data: { 
+        nu_versao: { increment: 1 },
+        ...updateArtistDto }
     })
   }
 
