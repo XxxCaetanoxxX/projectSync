@@ -6,22 +6,24 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
             $allModels: {
                 async create({ model, operation, args, query }) {
 
-                    // if (model === 'tb_user' && operation === 'create') {
-                    //     const newData = await query(args);
-                    //     const tableName = model.replace('tb_', '');
-                    //     const objectIdField = `${tableName}_id`;
-                    //     await prisma[`th_${tableName}_hist`].create({
-                    //         data: {
-                    //             modified_by_id: 0,
-                    //             modified_by_name: 'Created by public endpoint',
-                    //             [objectIdField]: newData.id,
-                    //             ...createAudit(),
-                    //             endpoint_modificador: url,
-                    //         }
-                    //     })
+                    if (model === 'tb_user' && operation === 'create') {
+                        args.data ={
+                            ...args.data,
+                            ...createAudit(url, 0, 'Created by public endpoint'),
+                        }
+                        const newData = await query(args);
+                        const {id, ...res} = newData;
+                        const tableName = model.replace('tb_', '');
+                        const objectIdField = `${tableName}_id`;
+                        await prisma[`th_${tableName}_hist`].create({
+                            data: {
+                                [objectIdField]: id,
+                                ...res,
+                            }
+                        })
 
-                    //     return newData
-                    // }
+                        return newData
+                    }
 
                     args.data = {
                         ...args.data,

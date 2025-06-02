@@ -8,27 +8,43 @@ datasource db {
 }
 
 model tb_user {
-  id              Int            @id @default(autoincrement())
-  name            String
-  cpf             String         @unique
-  email           String         @unique
-  phone           String         @unique
-  password        String
-  role            Role
-  createdAt       DateTime       @default(now())
-  imageId         Int?           @unique
-  eventsOrganized tb_event[]     @relation("OrganizerToEvent")
-  image           tb_user_image?
-  tickets         tb_ticket[] // Relacionamento com ingressos comprados
+  id                   Int            @id @default(autoincrement())
+  name                 String
+  cpf                  String         @unique
+  email                String         @unique
+  phone                String         @unique
+  password             String
+  role                 Role
+  imageId              Int?           @unique
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
+  eventsOrganized      tb_event[]     @relation("OrganizerToEvent")
+  image                tb_user_image?
+  tickets              tb_ticket[] // Relacionamento com ingressos comprados
 }
 
 model th_user_hist {
   id                   Int    @id @default(autoincrement())
-  modified_by_id       Int
-  modified_by_name     String
+  name                 String
+  cpf                  String         
+  email                String         
+  phone                String         
+  password             String
+  role                 Role
+  imageId              Int?           
   user_id              Int
-  operation            String
-  endpoint_modificador String
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
 }
 
 model tb_user_image {
