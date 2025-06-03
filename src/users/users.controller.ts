@@ -10,7 +10,9 @@ import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
 import { CreateUserSE, DeleteUserSE, FindAllUsersSE, FindOneUserSE, FindUsersEventsSE, LoginSE, UpdateUserSE, UploadUserImageSE } from './users_swagger_exemples';
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
