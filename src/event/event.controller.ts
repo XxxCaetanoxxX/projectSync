@@ -9,8 +9,9 @@ import { CreateEventSE, DeleteEventSE, FindAllEventsSE, FindOneEventSE, UpdateEv
 import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
-
+@ApiBearerAuth()
 @Controller('events')
 export class EventController {
   constructor(private readonly eventService: EventService) { }

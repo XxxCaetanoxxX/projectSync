@@ -19,7 +19,9 @@ import { Roles } from '../commom/decorators/roles_decorator.decorator'
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
 import { BuyTicketSE, CreateTicketSE, FindAllEventTypesSE, FindAllTicketsSE, FindOneTicketSE, FindOneTypeSE, FindUserTicketsSE, UpdateTicketSE, UpdateTypeSE } from './tickets_swagger_exemple';
 import { Public } from 'src/commom/decorators/public_decorator.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('ticket')
 export class TicketController {
   constructor(private readonly ticketService: TicketService) { }

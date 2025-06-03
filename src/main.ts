@@ -4,8 +4,6 @@ import { config } from 'dotenv';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
-import * as express from 'express';
-import { join } from 'path';
 
 config();
 
@@ -16,6 +14,7 @@ async function bootstrap() {
     .setTitle('API documentation')
     .setDescription('The project event API description')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, swaggerConfig);
