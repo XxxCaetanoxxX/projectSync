@@ -45,6 +45,7 @@ model th_user_hist {
   nu_versao            Int?
   modified_by_id       Int?
   modified_by_name     String?
+  changes              String?   @default("")
 }
 
 model tb_user_image {
@@ -85,6 +86,7 @@ model th_ticket_type_hist {
   nu_versao            Int?
   modified_by_id       Int?
   modified_by_name     String?
+  changes              String?   @default("")
 }
 
 model tb_ticket {
@@ -118,6 +120,7 @@ model th_ticket_hist {
   nu_versao            Int?
   modified_by_id       Int?
   modified_by_name     String?
+  changes              String?   @default("")
 }
 
 model tb_event {
@@ -152,6 +155,7 @@ model th_event_hist {
   nu_versao            Int?
   modified_by_id       Int?
   modified_by_name     String?
+  changes              String?   @default("")
 }
 
 model tb_event_image {
@@ -185,6 +189,7 @@ model th_artist_hist {
   nu_versao            Int?
   modified_by_id       Int?
   modified_by_name     String?
+  changes              String?   @default("")
 }
 
 model tb_artist_on_event {
@@ -223,6 +228,7 @@ model th_party_house_hist {
   nu_versao            Int?
   modified_by_id       Int?
   modified_by_name     String?
+  changes              String?   @default("")
 }
 
 enum Role {
