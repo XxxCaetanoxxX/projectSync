@@ -1,18 +1,18 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from '../prisma/prisma.service';
 import { HashingService } from '../hashing/hashing.service';
 import { LoginDto } from './dto/login.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
 import * as jwt from 'jsonwebtoken';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
+import { PrismaExtendedService } from '../prisma/prisma-extended.service';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaExtendedService,
     private readonly hashingService: HashingService,
     private readonly bucketSupabaseService: BucketSupabaseService
   ) { }
@@ -46,7 +46,7 @@ export class UsersService {
 
   async create({ password, ...createUserDto }: CreateUserDto) {
     const passwordHash = await this.hashingService.encrypt(password);
-    return await this.prisma.tb_user.create(
+    return await this.prisma.withAudit.tb_user.create(
       {
         data: {
           ...createUserDto,
@@ -123,20 +123,22 @@ export class UsersService {
 
 
   async update(id: number, { ...updateUserDto }: UpdateUserDto) {
-    return await this.prisma.tb_user.update({
+    return await this.prisma.withAudit.tb_user.update({
       where: {
         id
       },
       data: {
+        nu_versao: { increment: 1 },
         ...updateUserDto
       },
     });
   }
 
-  async remove(id: number) {
-    return await this.prisma.tb_user.delete({
+  async delete(id: number) {
+    const user = await this.prisma.withAudit.tb_user.delete({
       where: { id }
     });
+    return {message: "User deleted successfully!", data: user}
   }
 
   async uploadAvatarImage(id: number, file: Express.Multer.File) {

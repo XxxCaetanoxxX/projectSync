@@ -125,6 +125,6 @@ export class UsersController {
     example: DeleteUserSE
   })
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+    return this.usersService.delete(id);
   }
 }

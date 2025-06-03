@@ -5,15 +5,18 @@ import { FindAllTicketDto } from './dto/find-all-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
 import { EmailService } from '../email/email.service';
+import { PrismaExtendedService } from '../prisma/prisma-extended.service';
 
 @Injectable()
 export class TicketService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaExtendedService,
     private readonly emailService: EmailService
   ) { }
+
+  //TYPE
   async createType(createTicketTypeDto: CreateTicketTypeDto) {
-    const ticket = await this.prisma.tb_ticket_type.create(
+    const ticket = await this.prisma.withAudit.tb_ticket_type.create(
       {
         data: {
           ...createTicketTypeDto
@@ -24,19 +27,20 @@ export class TicketService {
   }
 
   async updateType(id: number, updateTicketTypeDto: UpdateTicketTypeDto) {
-    return await this.prisma.tb_ticket_type.update({
+    return await this.prisma.withAudit.tb_ticket_type.update({
       where: {
         id
       },
       data: {
+        nu_versao: { increment: 1 },
         ...updateTicketTypeDto
       }
     })
   }
 
   async deleteType(id: number) {
-    await this.prisma.tb_ticket_type.delete({ where: { id } });
-    return { message: "Ticket type deleted successfully!" }
+    const deletedType = await this.prisma.withAudit.tb_ticket_type.delete({ where: { id } });
+    return { message: "Ticket type deleted successfully!", data: deletedType }
   }
 
   async findAllEventTypes(eventId: number) {
@@ -97,8 +101,10 @@ export class TicketService {
     }
   }
 
+
+  //TICKET
   async buyTicket(ticketTypeId: number, userId: number) {
-    const ticketData = await this.prisma.$transaction(async (tx) => {
+    const ticketData = await this.prisma.withAudit.$transaction(async (tx) => {
       const ticketType = await this.findOneType(ticketTypeId);
 
       if (!ticketType || ticketType.quantity <= 0) {
@@ -116,13 +122,22 @@ export class TicketService {
         select: {
           id: true,
           ticketName: true,
+          ticketTypeId: true,
+          userId: true,
+          dt_alteracao: true,
+          dt_criacao: true,
+          endpoint_modificador: true,
+          nu_versao: true,
+          modified_by_id: true,
+          modified_by_name: true,
+          operation: true,
           user: {
             select: {
               name: true,
               email: true
             }
           }
-        }
+        },
       },
       );
 
@@ -232,7 +247,8 @@ export class TicketService {
       select: {
         id: true,
         ticketName: true,
-        createdAt: true,
+        dt_criacao: true,
+        dt_alteracao: true,
         ticketTypeId: true,
         userId: true,
         user: {
@@ -262,7 +278,7 @@ export class TicketService {
     return {
       id: ticket.id,
       ticket_name: ticket.ticketName,
-      created_at: ticket.createdAt,
+      created_at: ticket.dt_criacao,
       ticket_type_id: ticket.ticketTypeId,
       user_id: ticket.userId,
       event_id: ticket.ticket_type.event.id,
@@ -274,11 +290,12 @@ export class TicketService {
   }
 
   async updateTicket(id: number, updateTicketDto: UpdateTicketDto) {
-    const ticket = await this.prisma.tb_ticket.update({
+    const ticket = await this.prisma.withAudit.tb_ticket.update({
       where: {
         id
       },
       data: {
+        nu_versao: { increment: 1 },
         ...updateTicketDto
       }
     })
@@ -289,7 +306,7 @@ export class TicketService {
   }
 
   async deleteTicket(id: number) {
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.withAudit.$transaction(async (tx) => {
       const { ticket_type_id } = await this.findOneTicket(id);
 
       await tx.tb_ticket_type.update({
