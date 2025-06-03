@@ -56,13 +56,23 @@ export class UsersService {
     );
   }
 
-  async findAll({ name, ...dto }: FindAllUsersDto) {
+  async findAll({ name, cpf, email, phone, skip, take, ...dto }: FindAllUsersDto) {
     return await this.prisma.tb_user.findMany({
       where: {
-        ...dto,
+        cpf:{
+          contains: cpf
+        },
+        email: {
+          contains: email,
+          mode: 'insensitive'
+        },
+        phone: {
+          contains: phone
+        },
         name: {
           contains: name
         },
+        ...dto,
       },
       include: {
         image: {
@@ -71,7 +81,9 @@ export class UsersService {
             path: true
           }
         }
-      }
+      },
+      skip,
+      take
     });
   }
 

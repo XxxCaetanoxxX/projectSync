@@ -46,7 +46,7 @@ export class UsersController {
     summary: 'Find all users.',
     example: FindAllUsersSE
   })
-  findAll(@Query() findAllUsersDto: FindAllUsersDto) {
+  findAll(@Query() findAllUsersDto?: FindAllUsersDto) {
     return this.usersService.findAll(findAllUsersDto);
   }
 
