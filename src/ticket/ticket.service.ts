@@ -196,9 +196,34 @@ export class TicketService {
     }));
   }
 
-  async findAllTickets({ ...dto }: FindAllTicketDto) {
+  async findAllTickets({skip, take, userId, eventId, ticketTypeId, ticketName, eventName, userName, userEmail, ...dto }: FindAllTicketDto) {
     const tickets = await this.prisma.tb_ticket.findMany({
       where: {
+        ticketTypeId,
+        userId,
+        ticket_type: {
+          event: {
+            id: eventId,
+            name: {
+              contains: eventName,
+              mode: 'insensitive'
+            }
+          }
+        },
+        ticketName:{
+          contains: ticketName,
+          mode: 'insensitive'
+        },
+        user:{
+          name:{
+            contains: userName,
+            mode: 'insensitive'
+          },
+          email: {
+            contains: userEmail,
+            mode: 'insensitive'
+          },
+        },
         ...dto
       },
       select: {
@@ -223,7 +248,9 @@ export class TicketService {
             }
           }
         },
-      }
+      },
+      skip,
+      take
     })
 
     return tickets.map(ticket => ({
