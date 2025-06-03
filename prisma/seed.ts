@@ -208,7 +208,7 @@ async function main() {
                         modified_by_name: 'Criado via db seed'
                     },
                     {
-                        ticketName: `Ticket ${ticketType.name} - Carol`,
+                        ticketName: `Ticket ${ticketType.name} - Caetano`,
                         ticketTypeId: ticketType.id,
                         userId: 3,
                         dt_criacao: new Date(),

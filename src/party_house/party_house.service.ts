@@ -13,8 +13,22 @@ export class PartyHouseService {
     return createdPartyHouse;
   }
 
-  async findAll({ name, address, ...findAllPartyHouseDto }: FindAllPartyHouseDto) {
-    return await this.prisma.tb_party_house.findMany({ where: { name: { contains: name }, address: { contains: address }, ...findAllPartyHouseDto } });
+  async findAll({ name, address, skip, take, ...findAllPartyHouseDto }: FindAllPartyHouseDto) {
+    return await this.prisma.tb_party_house.findMany({
+      where: {
+        name: {
+          contains: name,
+          mode: 'insensitive'
+        },
+        address: {
+          contains: address,
+          mode: 'insensitive'
+        },
+        ...findAllPartyHouseDto
+      },
+      skip,
+      take
+    });
   }
 
   async findOne(id: number) {
