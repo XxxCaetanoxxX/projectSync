@@ -26,7 +26,12 @@ export class EventService {
       await this.usersService.update(userId, { role: RolesEnum.ORGANIZER });
     }
 
-    return await this.prisma.withAudit.tb_event.create({ data: { ...createEventDto, organizerId: userId } });
+    return await this.prisma.withAudit.tb_event.create({ 
+      data: { 
+        ...createEventDto, 
+        organizerId: userId 
+      } 
+    });
   }
 
   async findAll({ name, skip, take, ...dto }: FindAllEventsDto) {
