@@ -17,6 +17,7 @@ export class CreateUserDto {
     @IsEmail()
     email: string;
 
+    @ApiProperty()
     @Matches(/^\d{2}\d{2}\d{9}$/, { message: 'O número de telefone deve possuir 13 digitos: 55 31 999999999)' })
     @IsString()
     phone: string;
