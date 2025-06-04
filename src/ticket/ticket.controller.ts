@@ -20,6 +20,7 @@ import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorat
 import { BuyTicketSE, CreateTicketSE, FindAllEventTypesSE, FindAllTicketsSE, FindOneTicketSE, FindOneTypeSE, FindUserTicketsSE, UpdateTicketSE, UpdateTypeSE } from './tickets_swagger_exemple';
 import { Public } from 'src/commom/decorators/public_decorator.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { BuyTicketDto } from './dto/buy-ticket.dto';
 
 @ApiBearerAuth()
 @Controller('ticket')
@@ -94,8 +95,8 @@ export class TicketController {
     summary: 'Buy the ticket.',
     example: BuyTicketSE
   })
-  buyTicket(@Param('ticketTypeId', ParseIntPipe) ticketTypeId: number, @Req() req: any) {
-    return this.ticketService.buyTicket(ticketTypeId, req.user.id);
+  buyTicket(@Body() dto: BuyTicketDto, @Req() req: any) {
+    return this.ticketService.buyTicket(dto, req.user.id);
   }
 
   @Roles('PARTICIPANT', 'ORGANIZER', 'ADMIN')

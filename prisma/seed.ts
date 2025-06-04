@@ -1,233 +1,126 @@
-import { PrismaClient } from "@prisma/client";
-import * as bcrypt from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    const users = await prisma.tb_user.createMany({
-        data: [
-            {
-                name: 'Alice',
+    const now = new Date();
+    const oneWeekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    // Usuários
+    const [admin, organizer, participant] = await Promise.all([
+        prisma.tb_user.create({
+            data: {
+                name: 'Admin User',
+                cpf: '00000000000',
+                email: 'admin@example.com',
+                phone: '1100000000',
+                password: 'adminpass',
+                role: 'ADMIN'
+            }
+        }),
+        prisma.tb_user.create({
+            data: {
+                name: 'Organizer User',
                 cpf: '11111111111',
-                email: 'alice@example.com',
+                email: 'organizer@example.com',
                 phone: '1111111111',
-                password: await bcrypt.hash('dpmg123', 10),
-                role: 'PARTICIPANT',
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed'
-            },
-            {
-                name: 'Bob',
+                password: 'organizerpass',
+                role: 'ORGANIZER'
+            }
+        }),
+        prisma.tb_user.create({
+            data: {
+                name: 'Participant User',
                 cpf: '22222222222',
-                email: 'bob@example.com',
-                phone: '2222222222',
-                password: await bcrypt.hash('dpmg123', 10),
-                role: 'ORGANIZER',
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed'
-            },
-            {
-                name: 'Caetano',
-                cpf: '13598736409',
-                email: 'caetano@gmail.com',
-                phone: '3333333333',
-                password: await bcrypt.hash('dpmg123', 10),
-                role: 'ADMIN',
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed'
-            }
-        ]
-    });
-
-    const artists = await prisma.tb_artist.createMany({
-        data: [
-            {
-                name: 'DJ Alpha',
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed'
-            },
-            {
-                name: 'Band Beta',
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed'
-            },
-            {
-                name: 'Singer Gamma',
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed'
-            }
-        ]
-    });
-
-    const houses = await prisma.tb_party_house.createMany({
-        data: [
-            {
-                name: 'Parque da musica', address: '123 Main St',
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed'
-            },
-            {
-                name: 'Mineirao', address: '456 Park Ave',
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed'
-            },
-            {
-                name: 'Major Lock', address: '789 Ocean Dr',
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed'
-            }
-        ]
-    });
-
-    const [bob] = await prisma.tb_user.findMany({ where: { name: 'Bob' } });
-
-    const events = await Promise.all([
-        prisma.tb_event.create({
-            data: {
-                name: 'So track boa',
-                organizerId: bob.id,
-                dt_criacao: new Date(),
-                partyHouseId: 1,
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed',
-                artists: {
-                    create: [
-                        { artistId: 1 },
-                        { artistId: 2 }
-                    ]
-                }
-            }
-        }),
-        prisma.tb_event.create({
-            data: {
-                name: 'Ultimo baile do ano',
-                organizerId: bob.id,
-                partyHouseId: 2,
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed',
-                artists: {
-                    create: [
-                        { artistId: 2 },
-                        { artistId: 3 }
-                    ]
-                }
-            }
-        }),
-        prisma.tb_event.create({
-            data: {
-                name: 'Happy Holly',
-                organizerId: bob.id,
-                partyHouseId: 3,
-                dt_criacao: new Date(),
-                endpoint_modificador: 'Criado via db seed',
-                nu_versao: 1,
-                operation: 'Create',
-                modified_by_id: 0,
-                modified_by_name: 'Criado via db seed',
-                artists: {
-                    create: [
-                        { artistId: 1 },
-                        { artistId: 3 }
-                    ]
-                }
+                email: 'participant@example.com',
+                phone: '1122222222',
+                password: 'participantpass',
+                role: 'PARTICIPANT'
             }
         })
     ]);
 
-    for (const event of events) {
+    // Casas de festa
+    const [house1, house2] = await Promise.all([
+        prisma.tb_party_house.create({
+            data: { name: 'House 1', address: 'Rua A, 123' }
+        }),
+        prisma.tb_party_house.create({
+            data: { name: 'House 2', address: 'Rua B, 456' }
+        })
+    ]);
+
+    // Eventos
+    const [event1, event2] = await Promise.all([
+        prisma.tb_event.create({
+            data: {
+                name: 'Evento 1',
+                organizerId: organizer.id,
+                partyHouseId: house1.id
+            }
+        }),
+        prisma.tb_event.create({
+            data: {
+                name: 'Evento 2',
+                organizerId: organizer.id,
+                partyHouseId: house2.id
+            }
+        })
+    ]);
+
+    // Tipos de ingresso + lotes + ingresso comprado
+    for (const event of [event1, event2]) {
         for (let i = 1; i <= 2; i++) {
             const ticketType = await prisma.tb_ticket_type.create({
                 data: {
-                    name: `Lote ${i}`,
-                    price: 50 + i * 10,
+                    name: `Tipo ${i} - ${event.name}`,
                     quantity: 100,
-                    eventId: event.id,
-                    dt_criacao: new Date(),
-                    endpoint_modificador: 'Criado via db seed',
-                    nu_versao: 1,
-                    operation: 'Create',
-                    modified_by_id: 0,
-                    modified_by_name: 'Criado via db seed'
+                    eventId: event.id
                 }
             });
 
-            await prisma.tb_ticket.createMany({
-                data: [
-                    {
-                        ticketName: `Ticket ${ticketType.name} - Alice`,
-                        ticketTypeId: ticketType.id,
-                        userId: 1,
-                        dt_criacao: new Date(),
-                        endpoint_modificador: 'Criado via db seed',
-                        nu_versao: 1,
-                        operation: 'Create',
-                        modified_by_id: 0,
-                        modified_by_name: 'Criado via db seed'
-                    },
-                    {
-                        ticketName: `Ticket ${ticketType.name} - Caetano`,
-                        ticketTypeId: ticketType.id,
-                        userId: 3,
-                        dt_criacao: new Date(),
-                        endpoint_modificador: 'Criado via db seed',
-                        nu_versao: 1,
-                        operation: 'Create',
-                        modified_by_id: 0,
-                        modified_by_name: 'Criado via db seed'
+            const [batch1, batch2] = await Promise.all([
+                prisma.tb_batch.create({
+                    data: {
+                        name: `Lote 1 - Tipo ${i}`,
+                        price: 50,
+                        quantity: 50,
+                        startDate: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 dias atrás
+                        endDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000), // 3 dias depois
+                        ticket_type_id: ticketType.id
                     }
-                ]
+                }),
+                prisma.tb_batch.create({
+                    data: {
+                        name: `Lote 2 - Tipo ${i}`,
+                        price: 80,
+                        quantity: 50,
+                        startDate: new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000),
+                        endDate: new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000),
+                        ticket_type_id: ticketType.id
+                    }
+                })
+            ]);
+
+            // Criar ingresso no lote 1 para o participante
+            await prisma.tb_ticket.create({
+                data: {
+                    ticketName: `Ingresso Tipo ${i} - ${event.name}`,
+                    batchId: batch1.id,
+                    ticketTypeId: ticketType.id,
+                    userId: participant.id
+                }
             });
         }
     }
 }
 
 main()
-    .then(() => console.log('Seed complete.'))
+    .then(() => {
+        console.log('Seed concluído com sucesso.');
+        return prisma.$disconnect();
+    })
     .catch((e) => {
         console.error(e);
-        process.exit(1);
-    })
-    .finally(() => prisma.$disconnect());
+        return prisma.$disconnect();
+    });

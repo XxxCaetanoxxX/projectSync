@@ -6,6 +6,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
 import { EmailService } from '../email/email.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
+import { BuyTicketDto } from './dto/buy-ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -52,7 +53,6 @@ export class TicketService {
         id: true,
         name: true,
         eventId: true,
-        price: true,
         quantity: true,
         event: {
           select: {
@@ -67,7 +67,6 @@ export class TicketService {
       name: type.name,
       event_id: type.eventId,
       event_name: type.event.name,
-      price: type.price,
       quantity: type.quantity,
     }));
   }
@@ -81,7 +80,6 @@ export class TicketService {
         id: true,
         name: true,
         eventId: true,
-        price: true,
         quantity: true,
         event: {
           select: {
@@ -96,26 +94,52 @@ export class TicketService {
       name: ticketType.name,
       event_id: ticketType.eventId,
       event_name: ticketType.event.name,
-      price: ticketType.price,
       quantity: ticketType.quantity
     }
   }
 
 
   //TICKET
-  async buyTicket(ticketTypeId: number, userId: number) {
+  async buyTicket({ ticketTypeId, batchId, ...dto }: BuyTicketDto, userId: number) {
     const ticketData = await this.prisma.withAudit.$transaction(async (tx) => {
-      const ticketType = await this.findOneType(ticketTypeId);
+      // const ticketType = await this.findOneType(dto.ticketTypeId);
+      const ticketType = await tx.tb_ticket_type.findFirst({
+        where: {
+          id: ticketTypeId,
+          batchs: {
+            some: {
+              startDate: {
+                gte: new Date()
+              },
+              endDate: {
+                lte: new Date()
+              }
+            }
+          }
+        },
+        select: {
+          id: true,
+          name: true,
+          eventId: true,
+          quantity: true,
+          event: {
+            select: {
+              name: true,
+            }
+          },
+        }
+      })
 
       if (!ticketType || ticketType.quantity <= 0) {
         throw new BadRequestException('Ticket type out of stock!');
       }
 
-      const ticketName = `${ticketType.name} - ${ticketType.event_name}`
+      const ticketName = `${ticketType.name} - ${ticketType.event.name}`
 
       const ticket = await tx.tb_ticket.create({
         data: {
           ticketTypeId,
+          batchId,
           ticketName,
           userId,
         },
@@ -136,7 +160,8 @@ export class TicketService {
               name: true,
               email: true
             }
-          }
+          },
+
         },
       },
       );
@@ -146,7 +171,7 @@ export class TicketService {
         data: { quantity: ticketType.quantity - 1 },
       });
 
-      this.emailService.ticketBoughtEmail({ username: ticket.user.name, ticketName, eventName: ticketType.event_name, email: ticket.user.email, ticketId: ticket.id });
+      await this.emailService.ticketBoughtEmail({ username: ticket.user.name, ticketName, eventName: ticketType.event.name, email: ticket.user.email, ticketId: ticket.id });
 
       return ticket
     });
@@ -196,7 +221,7 @@ export class TicketService {
     }));
   }
 
-  async findAllTickets({skip, take, userId, eventId, ticketTypeId, ticketName, eventName, userName, userEmail, ...dto }: FindAllTicketDto) {
+  async findAllTickets({ skip, take, userId, eventId, ticketTypeId, ticketName, eventName, userName, userEmail, ...dto }: FindAllTicketDto) {
     const tickets = await this.prisma.tb_ticket.findMany({
       where: {
         ticketTypeId,
@@ -210,12 +235,12 @@ export class TicketService {
             }
           }
         },
-        ticketName:{
+        ticketName: {
           contains: ticketName,
           mode: 'insensitive'
         },
-        user:{
-          name:{
+        user: {
+          name: {
             contains: userName,
             mode: 'insensitive'
           },
