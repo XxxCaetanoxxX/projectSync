@@ -1,20 +1,22 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcryptjs from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
     const now = new Date();
     const oneWeekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const hashedPassword = await bcryptjs.hash('dpmg123', 10);
 
     // Usuários
     const [admin, organizer, participant] = await Promise.all([
         prisma.tb_user.create({
             data: {
-                name: 'Admin User',
+                name: 'Caetano',
                 cpf: '00000000000',
-                email: 'admin@example.com',
+                email: 'caetanocesar35@gmail.com',
                 phone: '1100000000',
-                password: 'adminpass',
+                password: hashedPassword,
                 role: 'ADMIN'
             }
         }),
@@ -24,7 +26,7 @@ async function main() {
                 cpf: '11111111111',
                 email: 'organizer@example.com',
                 phone: '1111111111',
-                password: 'organizerpass',
+                password: hashedPassword,
                 role: 'ORGANIZER'
             }
         }),
@@ -34,7 +36,7 @@ async function main() {
                 cpf: '22222222222',
                 email: 'participant@example.com',
                 phone: '1122222222',
-                password: 'participantpass',
+                password: hashedPassword,
                 role: 'PARTICIPANT'
             }
         })

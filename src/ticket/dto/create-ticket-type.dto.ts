@@ -9,10 +9,6 @@ export class CreateTicketTypeDto {
 
     @ApiProperty()
     @IsNumber()
-    price: number;
-
-    @ApiProperty()
-    @IsNumber()
     quantity: number;
 
     @ApiProperty()
