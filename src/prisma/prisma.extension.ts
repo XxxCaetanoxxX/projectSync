@@ -43,6 +43,7 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
                     const changes = deepDiff(oldData, newData);
                     const { id, ...res } = newData; //remove o id da response para nao dar conflito
                     const cleanedData = removeObjectsFromJoin(res);
+                    console.log(tableName)
                     await prisma[`th_${tableName}_hist`].create({
                         data: {
                             [objectIdField]: id, //repassa o id para o hist

@@ -7,9 +7,4 @@ export class BuyTicketDto {
     @IsNumber()
     @Type(() => Number)
     ticketTypeId: number
-
-    @ApiProperty()
-    @IsNumber()
-    @Type(() => Number)
-    batchId: number
 }

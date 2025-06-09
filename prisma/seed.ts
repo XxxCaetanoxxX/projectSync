@@ -108,7 +108,7 @@ async function main() {
             await prisma.tb_ticket.create({
                 data: {
                     ticketName: `Ingresso Tipo ${i} - ${event.name}`,
-                    batchId: batch1.id,
+                    batch_id: batch1.id,
                     ticketTypeId: ticketType.id,
                     userId: participant.id
                 }

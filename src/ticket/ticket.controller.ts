@@ -95,8 +95,8 @@ export class TicketController {
     summary: 'Buy the ticket.',
     example: BuyTicketSE
   })
-  buyTicket(@Body() dto: BuyTicketDto, @Req() req: any) {
-    return this.ticketService.buyTicket(dto, req.user.id);
+  buyTicket(@Param('ticketTypeId', ParseIntPipe) ticketTypeId: number, @Req() req: any) {
+    return this.ticketService.buyTicket(ticketTypeId, req.user.id);
   }
 
   @Roles('PARTICIPANT', 'ORGANIZER', 'ADMIN')

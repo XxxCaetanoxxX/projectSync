@@ -91,7 +91,7 @@ model th_ticket_type_hist {
 model tb_ticket {
   id                   Int            @id @default(autoincrement())
   ticketName           String
-  batchId              Int
+  batch_id             Int
   ticketTypeId         Int
   userId               Int
   dt_criacao           DateTime?
@@ -101,7 +101,7 @@ model tb_ticket {
   nu_versao            Int?
   modified_by_id       Int?
   modified_by_name     String?
-  batch                tb_batch       @relation(fields: [batchId], references: [id])
+  batch                tb_batch       @relation(fields: [batch_id], references: [id])
   ticket_type          tb_ticket_type @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
   user                 tb_user        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -111,6 +111,7 @@ model tb_ticket {
 model th_ticket_hist {
   id                   Int       @id @default(autoincrement())
   ticket_id            Int
+  batch_id             Int
   ticketName           String
   ticketTypeId         Int
   userId               Int
@@ -233,16 +234,43 @@ model th_party_house_hist {
 }
 
 model tb_batch {
-  id             Int      @id @default(autoincrement())
-  ticket_type_id Int
-  name           String
-  price          Float
-  quantity       Int
-  startDate      DateTime
-  endDate        DateTime
+  id                   Int       @id @default(autoincrement())
+  ticket_type_id       Int
+  name                 String
+  price                Float
+  quantity             Int
+  startDate            DateTime
+  endDate              DateTime
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
+  changes              String?   @default("")
 
   tb_ticket      tb_ticket[]
   tb_ticket_type tb_ticket_type @relation(fields: [ticket_type_id], references: [id])
+}
+
+model th_batch_hist {
+  id                   Int       @id @default(autoincrement())
+  batch_id             Int
+  ticket_type_id       Int
+  name                 String
+  price                Float
+  quantity             Int
+  startDate            DateTime
+  endDate              DateTime
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
+  changes              String?   @default("")
 }
 
 enum Role {
