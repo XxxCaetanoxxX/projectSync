@@ -58,6 +58,13 @@ export class EventService {
             id: true,
             name: true
           }
+        },
+        ticketTypes: {
+          select: {
+            name: true,
+            price: true,
+            quantity: true
+          }
         }
       },
     });
