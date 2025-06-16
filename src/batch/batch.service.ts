@@ -65,15 +65,39 @@ export class BatchService {
     return batchs;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} batch`;
+  async findOne(id: number) {
+    return await this.prisma.tb_batch.findUnique({
+      where: {
+        id
+      }
+    })
   }
 
-  update(id: number, updateBatchDto: UpdateBatchDto) {
-    return `This action updates a #${id} batch`;
+  async update(id: number, updateBatchDto: UpdateBatchDto) {
+    const batch = await this.prisma.withAudit.tb_batch.update({
+      where: {
+        id
+      },
+      data: {
+        ...updateBatchDto,
+        nu_versao: { increment: 1 }
+      }
+    })
+
+    return {
+      message: "Batch updated successfully!", data: batch
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} batch`;
+  async remove(id: number) {
+    const batch = await this.prisma.withAudit.tb_batch.delete({
+      where: {
+        id
+      }
+    })
+
+    return {
+      message: "Batch deleted successfully!", data: batch
+    }
   }
 }
