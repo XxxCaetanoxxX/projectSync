@@ -7,6 +7,7 @@ import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
 import { EmailService } from '../email/email.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
 import { BuyTicketDto } from './dto/buy-ticket.dto';
+import { type } from 'os';
 
 @Injectable()
 export class TicketService {
@@ -16,25 +17,57 @@ export class TicketService {
   ) { }
 
   //TYPE
-  async createType(createTicketTypeDto: CreateTicketTypeDto) {
+  async createType(dto: CreateTicketTypeDto) {
+
+    const event = await this.prisma.tb_event.findUnique({
+      where: {
+        id: dto.eventId
+      },
+      include: {
+        ticketTypes: true
+      }
+    })
+
+    const totalIngressosDistribuidos = event.ticketTypes.reduce((acc, type) => acc + type.quantity, 0);
+
+    if (totalIngressosDistribuidos + dto.quantity > event.nu_ingressos) {
+      throw new BadRequestException('Event capacity exceeded');
+    }
+
     const ticket = await this.prisma.withAudit.tb_ticket_type.create(
       {
         data: {
-          ...createTicketTypeDto
+          ...dto
         }
       }
     )
     return { message: "Ticket type created successfully!", data: ticket }
   }
 
-  async updateType(id: number, updateTicketTypeDto: UpdateTicketTypeDto) {
+  async updateType(id: number, dto: UpdateTicketTypeDto) {
+
+    const event = await this.prisma.tb_event.findUnique({
+      where: {
+        id: dto.eventId
+      },
+      include: {
+        ticketTypes: true
+      }
+    })
+
+    const totalIngressosDistribuidos = event.ticketTypes.reduce((acc, type) => acc + type.quantity, 0);
+
+    if (totalIngressosDistribuidos + dto.quantity > event.nu_ingressos) {
+      throw new BadRequestException('Event capacity exceeded');
+    }
+
     return await this.prisma.withAudit.tb_ticket_type.update({
       where: {
         id
       },
       data: {
         nu_versao: { increment: 1 },
-        ...updateTicketTypeDto
+        ...dto
       }
     })
   }
@@ -134,16 +167,6 @@ export class TicketService {
       const ticketType = await tx.tb_ticket_type.findFirst({
         where: {
           id: ticketTypeId,
-          batchs: {
-            some: {
-              startDate: {
-                lte: new Date()
-              },
-              endDate: {
-                gte: new Date()
-              }
-            }
-          }
         },
         select: {
           id: true,
@@ -172,7 +195,7 @@ export class TicketService {
         }
       })
 
-      if (!ticketType || ticketType.quantity <= 0 || ticketType.batchs[0].quantity <= 0) {
+      if (!ticketType || ticketType.quantity <= 0) {
         throw new BadRequestException('Ticket type out of stock!');
       }
 
@@ -218,11 +241,6 @@ export class TicketService {
       await tx.tb_ticket_type.update({
         where: { id: ticketType.id },
         data: { quantity: ticketType.quantity - 1 },
-      });
-
-      await tx.tb_batch.update({
-        where: { id: ticket.batch_id },
-        data: { quantity: ticketType.batchs[0].quantity - 1 },
       });
 
       await this.emailService.ticketBoughtEmail({ username: ticket.user.name, ticketName, eventName: ticketType.event.name, email: ticket.user.email, ticketId: ticket.id });

@@ -130,6 +130,7 @@ model tb_event {
   name                 String
   organizerId          Int
   partyHouseId         Int
+  nu_ingressos         Int                  @default(1000) //TODO depois remover
   dt_criacao           DateTime?
   dt_alteracao         DateTime?
   operation            String?
@@ -238,7 +239,6 @@ model tb_batch {
   ticket_type_id       Int
   name                 String
   price                Float
-  quantity             Int
   startDate            DateTime
   endDate              DateTime
   dt_criacao           DateTime?

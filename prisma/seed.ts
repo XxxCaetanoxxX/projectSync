@@ -58,14 +58,16 @@ async function main() {
             data: {
                 name: 'Evento 1',
                 organizerId: organizer.id,
-                partyHouseId: house1.id
+                partyHouseId: house1.id,
+                nu_ingressos: 100
             }
         }),
         prisma.tb_event.create({
             data: {
                 name: 'Evento 2',
                 organizerId: organizer.id,
-                partyHouseId: house2.id
+                partyHouseId: house2.id,
+                nu_ingressos: 100
             }
         })
     ]);
