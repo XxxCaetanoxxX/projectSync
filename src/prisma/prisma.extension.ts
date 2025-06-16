@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient } from "@prisma/client";
+import { datenow } from "src/commom/utils/datenow";
 
 export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,) =>
     Prisma.defineExtension({
@@ -118,7 +119,7 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
 function createAudit(url, user_id, user_name) {
     return {
         operation: 'CREATE',
-        dt_criacao: new Date(),
+        dt_criacao: datenow(),
         endpoint_modificador: url,
         nu_versao: 1,
         modified_by_id: user_id,
@@ -129,7 +130,7 @@ function createAudit(url, user_id, user_name) {
 function updateAudit(url, user_id, user_name) {
     return {
         operation: 'UPDATE',
-        dt_alteracao: new Date(),
+        dt_alteracao: datenow(),
         endpoint_modificador: url,
         modified_by_id: user_id,
         modified_by_name: user_name
@@ -139,7 +140,7 @@ function updateAudit(url, user_id, user_name) {
 function deleteAudit(url, user_id, user_name) {
     return {
         operation: 'DELETE',
-        dt_alteracao: new Date(),
+        dt_alteracao: datenow(),
         endpoint_modificador: url,
         modified_by_id: user_id,
         modified_by_name: user_name

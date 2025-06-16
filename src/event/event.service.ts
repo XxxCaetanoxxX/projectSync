@@ -26,11 +26,11 @@ export class EventService {
       await this.usersService.update(userId, { role: RolesEnum.ORGANIZER });
     }
 
-    return await this.prisma.withAudit.tb_event.create({ 
-      data: { 
-        ...createEventDto, 
-        organizerId: userId 
-      } 
+    return await this.prisma.withAudit.tb_event.create({
+      data: {
+        ...createEventDto,
+        organizerId: userId
+      }
     });
   }
 
@@ -97,6 +97,20 @@ export class EventService {
             path: true
           }
         },
+        ticketTypes: {
+          include: {
+            batchs: {
+              where: {
+                startDate: {
+                  lte: new Date()
+                },
+                endDate: {
+                  gte: new Date()
+                },
+              }
+            }
+          }
+        }
       },
     });
 
@@ -106,7 +120,8 @@ export class EventService {
       name: event.name,
       party_house: event.party_house.name,
       artists: event.artists.map(a => a.artist),
-      images: event.images
+      images: event.images,
+      ticketTypes: event.ticketTypes
     }
   }
 

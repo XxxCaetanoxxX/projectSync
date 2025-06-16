@@ -6,6 +6,9 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
 import { EmailService } from '../email/email.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
+import { BuyTicketDto } from './dto/buy-ticket.dto';
+import { type } from 'os';
+import { datenow } from 'src/commom/utils/datenow';
 
 @Injectable()
 export class TicketService {
@@ -15,25 +18,57 @@ export class TicketService {
   ) { }
 
   //TYPE
-  async createType(createTicketTypeDto: CreateTicketTypeDto) {
+  async createType(dto: CreateTicketTypeDto) {
+
+    const event = await this.prisma.tb_event.findUnique({
+      where: {
+        id: dto.eventId
+      },
+      include: {
+        ticketTypes: true
+      }
+    })
+
+    const totalIngressosDistribuidos = event.ticketTypes.reduce((acc, type) => acc + type.quantity, 0);
+
+    if (totalIngressosDistribuidos + dto.quantity > event.nu_ingressos) {
+      throw new BadRequestException('Event capacity exceeded');
+    }
+
     const ticket = await this.prisma.withAudit.tb_ticket_type.create(
       {
         data: {
-          ...createTicketTypeDto
+          ...dto
         }
       }
     )
     return { message: "Ticket type created successfully!", data: ticket }
   }
 
-  async updateType(id: number, updateTicketTypeDto: UpdateTicketTypeDto) {
+  async updateType(id: number, dto: UpdateTicketTypeDto) {
+
+    const event = await this.prisma.tb_event.findUnique({
+      where: {
+        id: dto.eventId
+      },
+      include: {
+        ticketTypes: true
+      }
+    })
+
+    const totalIngressosDistribuidos = event.ticketTypes.reduce((acc, type) => acc + type.quantity, 0);
+
+    if (totalIngressosDistribuidos + dto.quantity > event.nu_ingressos) {
+      throw new BadRequestException('Event capacity exceeded');
+    }
+
     return await this.prisma.withAudit.tb_ticket_type.update({
       where: {
         id
       },
       data: {
         nu_versao: { increment: 1 },
-        ...updateTicketTypeDto
+        ...dto
       }
     })
   }
@@ -46,14 +81,41 @@ export class TicketService {
   async findAllEventTypes(eventId: number) {
     const types = await this.prisma.tb_ticket_type.findMany({
       where: {
-        eventId
+        eventId,
+        batchs: {
+          some: {
+            AND: [
+              {
+                startDate: {
+                  lte: datenow()
+                },
+                endDate: {
+                  gte: datenow()
+                }
+              }
+            ]
+          }
+        }
       },
       select: {
         id: true,
         name: true,
         eventId: true,
-        price: true,
         quantity: true,
+        batchs: {
+          where: {
+            AND: [
+              {
+                startDate: {
+                  lte: datenow()
+                },
+                endDate: {
+                  gte: datenow()
+                }
+              }
+            ]
+          },
+        },
         event: {
           select: {
             name: true,
@@ -67,8 +129,8 @@ export class TicketService {
       name: type.name,
       event_id: type.eventId,
       event_name: type.event.name,
-      price: type.price,
       quantity: type.quantity,
+      batch: type.batchs[0]
     }));
   }
 
@@ -81,7 +143,6 @@ export class TicketService {
         id: true,
         name: true,
         eventId: true,
-        price: true,
         quantity: true,
         event: {
           select: {
@@ -96,7 +157,6 @@ export class TicketService {
       name: ticketType.name,
       event_id: ticketType.eventId,
       event_name: ticketType.event.name,
-      price: ticketType.price,
       quantity: ticketType.quantity
     }
   }
@@ -105,17 +165,52 @@ export class TicketService {
   //TICKET
   async buyTicket(ticketTypeId: number, userId: number) {
     const ticketData = await this.prisma.withAudit.$transaction(async (tx) => {
-      const ticketType = await this.findOneType(ticketTypeId);
+      const ticketType = await tx.tb_ticket_type.findFirst({
+        where: {
+          id: ticketTypeId,
+        },
+        select: {
+          id: true,
+          name: true,
+          eventId: true,
+          quantity: true,
+          batchs: {
+            where: {
+              startDate: {
+                lte: datenow()
+              },
+              endDate: {
+                gte: datenow()
+              },
+            },
+            orderBy: {
+              startDate: 'asc'
+            },
+            take: 1
+          },
+          event: {
+            select: {
+              name: true,
+              dt_start: true
+            }
+          },
+        }
+      })
 
       if (!ticketType || ticketType.quantity <= 0) {
         throw new BadRequestException('Ticket type out of stock!');
       }
 
-      const ticketName = `${ticketType.name} - ${ticketType.event_name}`
+      if (datenow() >= ticketType.event.dt_start) {
+        throw new BadRequestException('Event has started.');
+      }
+
+      const ticketName = `${ticketType.name} - ${ticketType.event.name}`
 
       const ticket = await tx.tb_ticket.create({
         data: {
           ticketTypeId,
+          batch_id: ticketType.batchs[0].id,
           ticketName,
           userId,
         },
@@ -124,6 +219,13 @@ export class TicketService {
           ticketName: true,
           ticketTypeId: true,
           userId: true,
+          batch_id: true,
+          batch: {
+            select: {
+              name: true,
+              price: true
+            }
+          },
           dt_alteracao: true,
           dt_criacao: true,
           endpoint_modificador: true,
@@ -136,7 +238,8 @@ export class TicketService {
               name: true,
               email: true
             }
-          }
+          },
+
         },
       },
       );
@@ -146,7 +249,7 @@ export class TicketService {
         data: { quantity: ticketType.quantity - 1 },
       });
 
-      this.emailService.ticketBoughtEmail({ username: ticket.user.name, ticketName, eventName: ticketType.event_name, email: ticket.user.email, ticketId: ticket.id });
+      await this.emailService.ticketBoughtEmail({ username: ticket.user.name, ticketName, eventName: ticketType.event.name, email: ticket.user.email, ticketId: ticket.id });
 
       return ticket
     });
@@ -196,7 +299,7 @@ export class TicketService {
     }));
   }
 
-  async findAllTickets({skip, take, userId, eventId, ticketTypeId, ticketName, eventName, userName, userEmail, ...dto }: FindAllTicketDto) {
+  async findAllTickets({ skip, take, userId, eventId, ticketTypeId, ticketName, eventName, userName, userEmail, ...dto }: FindAllTicketDto) {
     const tickets = await this.prisma.tb_ticket.findMany({
       where: {
         ticketTypeId,
@@ -210,12 +313,12 @@ export class TicketService {
             }
           }
         },
-        ticketName:{
+        ticketName: {
           contains: ticketName,
           mode: 'insensitive'
         },
-        user:{
-          name:{
+        user: {
+          name: {
             contains: userName,
             mode: 'insensitive'
           },

@@ -20,6 +20,7 @@ import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorat
 import { BuyTicketSE, CreateTicketSE, FindAllEventTypesSE, FindAllTicketsSE, FindOneTicketSE, FindOneTypeSE, FindUserTicketsSE, UpdateTicketSE, UpdateTypeSE } from './tickets_swagger_exemple';
 import { Public } from 'src/commom/decorators/public_decorator.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { BuyTicketDto } from './dto/buy-ticket.dto';
 
 @ApiBearerAuth()
 @Controller('ticket')

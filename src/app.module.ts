@@ -11,6 +11,7 @@ import { PdfModule } from './pdf/pdf.module';
 import { BucketSupabaseModule } from './bucket_supabase/bucket_supabase.module';
 import { TicketModule } from './ticket/ticket.module';
 import { EmailModule } from './email/email.module';
+import { BatchModule } from './batch/batch.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { EmailModule } from './email/email.module';
     PdfModule,
     BucketSupabaseModule,
     TicketModule,
-    EmailModule
+    EmailModule,
+    BatchModule
   ],
   controllers: [],
   providers: [

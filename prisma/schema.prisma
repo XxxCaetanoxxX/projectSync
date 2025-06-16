@@ -58,7 +58,6 @@ model tb_user_image {
 model tb_ticket_type {
   id                   Int         @id @default(autoincrement())
   name                 String
-  price                Float
   quantity             Int
   eventId              Int
   dt_criacao           DateTime?
@@ -70,13 +69,13 @@ model tb_ticket_type {
   modified_by_name     String?
   event                tb_event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   tickets              tb_ticket[]
+  batchs               tb_batch[]
 }
 
 model th_ticket_type_hist {
   id                   Int       @id @default(autoincrement())
   ticket_type_id       Int
   name                 String
-  price                Float
   quantity             Int
   eventId              Int
   dt_criacao           DateTime?
@@ -92,6 +91,7 @@ model th_ticket_type_hist {
 model tb_ticket {
   id                   Int            @id @default(autoincrement())
   ticketName           String
+  batch_id             Int
   ticketTypeId         Int
   userId               Int
   dt_criacao           DateTime?
@@ -101,6 +101,7 @@ model tb_ticket {
   nu_versao            Int?
   modified_by_id       Int?
   modified_by_name     String?
+  batch                tb_batch       @relation(fields: [batch_id], references: [id])
   ticket_type          tb_ticket_type @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
   user                 tb_user        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -110,6 +111,7 @@ model tb_ticket {
 model th_ticket_hist {
   id                   Int       @id @default(autoincrement())
   ticket_id            Int
+  batch_id             Int
   ticketName           String
   ticketTypeId         Int
   userId               Int
@@ -128,6 +130,9 @@ model tb_event {
   name                 String
   organizerId          Int
   partyHouseId         Int
+  nu_ingressos         Int                  @default(1000) //TODO depois remover
+  dt_start             DateTime
+  dt_end               DateTime
   dt_criacao           DateTime?
   dt_alteracao         DateTime?
   operation            String?
@@ -148,6 +153,9 @@ model th_event_hist {
   name                 String
   organizerId          Int
   partyHouseId         Int
+  nu_ingressos         Int       @default(1000) //TODO depois remover
+  dt_start             DateTime
+  dt_end               DateTime
   dt_criacao           DateTime?
   dt_alteracao         DateTime?
   operation            String?
@@ -221,6 +229,44 @@ model th_party_house_hist {
   party_house_id       Int
   name                 String
   address              String
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
+  changes              String?   @default("")
+}
+
+model tb_batch {
+  id                   Int       @id @default(autoincrement())
+  ticket_type_id       Int
+  name                 String
+  price                Float
+  startDate            DateTime
+  endDate              DateTime
+  dt_criacao           DateTime?
+  dt_alteracao         DateTime?
+  operation            String?
+  endpoint_modificador String?
+  nu_versao            Int?
+  modified_by_id       Int?
+  modified_by_name     String?
+  changes              String?   @default("")
+
+  tb_ticket      tb_ticket[]
+  tb_ticket_type tb_ticket_type @relation(fields: [ticket_type_id], references: [id])
+}
+
+model th_batch_hist {
+  id                   Int       @id @default(autoincrement())
+  batch_id             Int
+  ticket_type_id       Int
+  name                 String
+  price                Float
+  startDate            DateTime
+  endDate              DateTime
   dt_criacao           DateTime?
   dt_alteracao         DateTime?
   operation            String?
