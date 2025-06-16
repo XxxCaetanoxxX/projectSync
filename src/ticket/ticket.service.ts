@@ -8,6 +8,7 @@ import { EmailService } from '../email/email.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
 import { BuyTicketDto } from './dto/buy-ticket.dto';
 import { type } from 'os';
+import { datenow } from 'src/commom/utils/datenow';
 
 @Injectable()
 export class TicketService {
@@ -86,10 +87,10 @@ export class TicketService {
             AND: [
               {
                 startDate: {
-                  lte: new Date()
+                  lte: datenow()
                 },
                 endDate: {
-                  gte: new Date()
+                  gte: datenow()
                 }
               }
             ]
@@ -106,10 +107,10 @@ export class TicketService {
             AND: [
               {
                 startDate: {
-                  lte: new Date()
+                  lte: datenow()
                 },
                 endDate: {
-                  gte: new Date()
+                  gte: datenow()
                 }
               }
             ]
@@ -176,10 +177,10 @@ export class TicketService {
           batchs: {
             where: {
               startDate: {
-                lte: new Date()
+                lte: datenow()
               },
               endDate: {
-                gte: new Date()
+                gte: datenow()
               },
             },
             orderBy: {
@@ -190,6 +191,7 @@ export class TicketService {
           event: {
             select: {
               name: true,
+              dt_start: true
             }
           },
         }
@@ -197,6 +199,10 @@ export class TicketService {
 
       if (!ticketType || ticketType.quantity <= 0) {
         throw new BadRequestException('Ticket type out of stock!');
+      }
+
+      if (datenow() >= ticketType.event.dt_start) {
+        throw new BadRequestException('Event has started.');
       }
 
       const ticketName = `${ticketType.name} - ${ticketType.event.name}`

@@ -8,6 +8,7 @@ import { FindOneUserDto } from './dto/find-one-user.dto';
 import * as jwt from 'jsonwebtoken';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
+import { datenow } from 'src/commom/utils/datenow';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +22,6 @@ export class UsersService {
     const { email, phone, password } = loginDto;
 
     const providedParams = [email, phone].filter(param => param);
-
     if (providedParams.length === 0) {
       throw new BadRequestException("You must provide an email OR a phone.");
     } else if (providedParams.length > 1) {
@@ -59,7 +59,7 @@ export class UsersService {
   async findAll({ name, cpf, email, phone, skip, take, ...dto }: FindAllUsersDto) {
     return await this.prisma.tb_user.findMany({
       where: {
-        cpf:{
+        cpf: {
           contains: cpf
         },
         email: {
@@ -150,7 +150,7 @@ export class UsersService {
     const user = await this.prisma.withAudit.tb_user.delete({
       where: { id }
     });
-    return {message: "User deleted successfully!", data: user}
+    return { message: "User deleted successfully!", data: user }
   }
 
   async uploadAvatarImage(id: number, file: Express.Multer.File) {

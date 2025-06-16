@@ -53,24 +53,43 @@ async function main() {
     ]);
 
     // Eventos
+    function getEventDates() {
+        const now = new Date();
+        const start = new Date(now);
+        start.setDate(start.getDate() + 7); // daqui a 7 dias
+        start.setHours(13, 0, 0, 0); // 13:00:00
+
+        const end = new Date(start.getTime() + 24 * 60 * 60 * 1000); // +24 horas
+
+        return { start, end };
+    }
+
+    const { start: start1, end: end1 } = getEventDates();
+    const { start: start2, end: end2 } = getEventDates(); // pode ser igual, ou pode variar se quiser
+
     const [event1, event2] = await Promise.all([
         prisma.tb_event.create({
             data: {
-                name: 'Evento 1',
+                name: 'SARARA',
                 organizerId: organizer.id,
                 partyHouseId: house1.id,
-                nu_ingressos: 100
+                nu_ingressos: 100,
+                dt_start: start1,
+                dt_end: end1
             }
         }),
         prisma.tb_event.create({
             data: {
-                name: 'Evento 2',
+                name: 'Planeta Brasil',
                 organizerId: organizer.id,
                 partyHouseId: house2.id,
-                nu_ingressos: 100
+                nu_ingressos: 100,
+                dt_start: start2,
+                dt_end: end2
             }
         })
     ]);
+
 
     // Tipos de ingresso + lotes + ingresso comprado
     for (const event of [event1, event2]) {
@@ -88,7 +107,6 @@ async function main() {
                     data: {
                         name: `Lote 1 - Tipo ${i}`,
                         price: 50,
-                        quantity: 50,
                         startDate: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 dias atrás
                         endDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000), // 3 dias depois
                         ticket_type_id: ticketType.id
@@ -98,7 +116,6 @@ async function main() {
                     data: {
                         name: `Lote 2 - Tipo ${i}`,
                         price: 80,
-                        quantity: 50,
                         startDate: new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000),
                         endDate: new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000),
                         ticket_type_id: ticketType.id

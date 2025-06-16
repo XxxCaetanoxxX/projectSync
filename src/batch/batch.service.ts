@@ -10,7 +10,7 @@ export class BatchService {
   ) { }
   async create(createBatchDto: CreateBatchDto) {
 
-    const batch = await this.prisma.tb_batch.create({
+    const batch = await this.prisma.withAudit.tb_batch.create({
       data: {
         ...createBatchDto
       }
