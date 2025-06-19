@@ -1,4 +1,3 @@
-// email/email.processor.ts
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { TicketBoughtDto } from './dto/ticket-bought.dto';
 import { EmailService } from './email.service';

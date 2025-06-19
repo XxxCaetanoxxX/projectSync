@@ -1,4 +1,3 @@
-// email/email.queue.ts
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { Injectable } from '@nestjs/common';
