@@ -1,20 +1,17 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
 import { FindAllTicketDto } from './dto/find-all-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
-import { EmailService } from '../email/email.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
-import { BuyTicketDto } from './dto/buy-ticket.dto';
-import { type } from 'os';
 import { datenow } from 'src/commom/utils/datenow';
+import { EmailQueue } from 'src/email/email.queue';
 
 @Injectable()
 export class TicketService {
   constructor(
     private readonly prisma: PrismaExtendedService,
-    private readonly emailService: EmailService
+    private readonly emailQueue: EmailQueue,
   ) { }
 
   //TYPE
@@ -249,7 +246,7 @@ export class TicketService {
         data: { quantity: ticketType.quantity - 1 },
       });
 
-      await this.emailService.ticketBoughtEmail({ username: ticket.user.name, ticketName, eventName: ticketType.event.name, email: ticket.user.email, ticketId: ticket.id });
+      await this.emailQueue.addTicketBoughtEmail({ username: ticket.user.name, ticketName, eventName: ticketType.event.name, email: ticket.user.email, ticketId: ticket.id });
 
       return ticket
     });

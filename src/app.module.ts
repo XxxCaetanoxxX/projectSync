@@ -12,6 +12,7 @@ import { BucketSupabaseModule } from './bucket_supabase/bucket_supabase.module';
 import { TicketModule } from './ticket/ticket.module';
 import { EmailModule } from './email/email.module';
 import { BatchModule } from './batch/batch.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -26,7 +27,16 @@ import { BatchModule } from './batch/batch.module';
     BucketSupabaseModule,
     TicketModule,
     EmailModule,
-    BatchModule
+    BatchModule,
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost', //conexao com o redis
+        port: 6379,
+      },
+    }),
+    BullModule.registerQueue({
+      name: 'email', //registra o nome da fila
+    }),
   ],
   controllers: [],
   providers: [
