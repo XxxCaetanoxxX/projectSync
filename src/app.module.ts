@@ -12,6 +12,7 @@ import { BucketSupabaseModule } from './bucket_supabase/bucket_supabase.module';
 import { TicketModule } from './ticket/ticket.module';
 import { EmailModule } from './email/email.module';
 import { BatchModule } from './batch/batch.module';
+import { EmailQueueModule } from './email_queue/email_queue.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { BatchModule } from './batch/batch.module';
     BucketSupabaseModule,
     TicketModule,
     EmailModule,
-    BatchModule
+    BatchModule,
+    EmailQueueModule
   ],
   controllers: [],
   providers: [
