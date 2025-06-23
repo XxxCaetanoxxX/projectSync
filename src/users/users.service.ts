@@ -9,13 +9,17 @@ import * as jwt from 'jsonwebtoken';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
 import { datenow } from 'src/commom/utils/datenow';
+import { ForgotPasswordDto } from './dto/forgot_password.dto';
+import { EmailService } from 'src/email/email.service';
+import { ResetPasswordDto } from './dto/reset_password.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaExtendedService,
     private readonly hashingService: HashingService,
-    private readonly bucketSupabaseService: BucketSupabaseService
+    private readonly bucketSupabaseService: BucketSupabaseService,
+    private readonly emailService: EmailService
   ) { }
 
   async login(loginDto: LoginDto) {
@@ -54,6 +58,43 @@ export class UsersService {
         }
       }
     );
+  }
+
+  async requestPasswordReset({ email, ...dto }: ForgotPasswordDto) {
+    const user = await this.prisma.tb_user.findFirst({ where: { email } });
+    if (!user) throw new NotFoundException('User not found with the email provided!');
+
+    const token = jwt.sign(
+      { id: user.id },
+      process.env.JWT_SECRETY,
+      {
+        expiresIn: '15m'
+      }
+    );
+
+    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+
+    await this.emailService.sendForgotPasswordEmail(user.email, resetLink);
+
+    return { message: 'Email sent to reset password!' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    //TODO: fazer exception filter de token expirado
+    const decodedToken = jwt.verify(dto.token, process.env.JWT_SECRETY);
+
+    const passwordHash = await this.hashingService.encrypt(dto.newPassword);
+
+    const user = await this.prisma.tb_user.update({
+      where: {
+        id: decodedToken.id
+      },
+      data: {
+        password: passwordHash
+      }
+    })
+
+    return { message: 'Password reset successfully!' }
   }
 
   async findAll({ name, cpf, email, phone, skip, take, ...dto }: FindAllUsersDto) {
@@ -134,17 +175,29 @@ export class UsersService {
   }
 
 
-  async update(id: number, { ...updateUserDto }: UpdateUserDto) {
-    return await this.prisma.withAudit.tb_user.update({
-      where: {
-        id
-      },
-      data: {
-        nu_versao: { increment: 1 },
-        ...updateUserDto
-      },
+  async update(id: number, { password, ...updateUserDto }: UpdateUserDto) {
+    let dataToUpdate: any = {
+      nu_versao: { increment: 1 },
+      ...updateUserDto,
+    };
+
+    //se tiver que atualizar a senha, adiciona em dados para atualizar
+    if (password) {
+      const passwordHash = await this.hashingService.encrypt(password);
+      dataToUpdate.password = passwordHash;
+    }
+
+    const res = await this.prisma.withAudit.tb_user.update({
+      where: { id },
+      data: dataToUpdate,
     });
+
+    return {
+      message: "User updated!",
+      data: res
+    }
   }
+
 
   async delete(id: number) {
     const user = await this.prisma.withAudit.tb_user.delete({
