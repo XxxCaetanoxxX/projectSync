@@ -14,6 +14,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { ForgotPasswordDto } from './dto/forgot_password.dto';
 import { ResetPasswordDto } from './dto/reset_password.dto';
 import { VerifyResetCodeDto } from './dto/verify_code.dto';
+import { HttpCode } from '@nestjs/common';
 
 @ApiBearerAuth()
 @Controller('users')
@@ -45,8 +46,8 @@ export class UsersController {
   @Public()
   @Post('send-email-forgot-password')
   @ApiResponseUtil({
-    status: 200,
-    summary: 'Send emailto reset password.',
+    status: 201,
+    summary: 'Send email to reset password.',
     example: {
       message: "Email send!"
     }
@@ -56,15 +57,30 @@ export class UsersController {
   }
 
   @Public()
-  @Post('reset-password')
-  resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.usersService.resetPassword(dto);
+  @Post('verify-reset-code')
+  @HttpCode(200)
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'Verify password.',
+    example: {
+      message: "Code is valid"
+    }
+  })
+  verifyResetCode(@Body() dto: VerifyResetCodeDto) {
+    return this.usersService.verifyResetCode(dto);
   }
 
   @Public()
-  @Post('verify-reset-code')
-  verifyResetCode(@Body() dto: VerifyResetCodeDto) {
-    return this.usersService.verifyResetCode(dto);
+  @Patch('reset-password')
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'reset password.',
+    example: {
+      message: "Password reset successfully!"
+    }
+  })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.usersService.resetPassword(dto);
   }
 
   @Roles('ADMIN', 'ORGANIZER')
