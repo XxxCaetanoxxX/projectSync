@@ -64,35 +64,56 @@ export class UsersService {
     const user = await this.prisma.tb_user.findFirst({ where: { email } });
     if (!user) throw new NotFoundException('User not found with the email provided!');
 
-    const token = jwt.sign(
-      { id: user.id },
-      process.env.JWT_SECRETY,
-      {
-        expiresIn: '15m'
+    const code = Math.floor(100000 + Math.random() * 900000).toString(); // Gerar um código de 6 dígitos
+
+
+    await this.prisma.tb_password_reset.create({
+      data: {
+        code,
+        email,
+        expiresAt: new Date(Date.now() + 1000 * 60 * 15), //vai xpirar em 15 minutos
       }
-    );
+    })
 
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    await this.emailService.sendForgotPasswordEmail(user.email, code);
 
-    await this.emailService.sendForgotPasswordEmail(user.email, resetLink);
-
-    return { message: 'Email sent to reset password!' };
+    return { message: 'Code sent to registred email!' };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
-    //TODO: fazer exception filter de token expirado
-    const decodedToken = jwt.verify(dto.token, process.env.JWT_SECRETY);
+    const record = await this.prisma.tb_password_reset.findFirst({
+      where: {
+        code: dto.code,
+        email: dto.email,
+        used: false,
+        expiresAt: { gte: new Date() }
+      }
+    })
+
+    if (!record) throw new BadRequestException('Invalid code or expired!');
 
     const passwordHash = await this.hashingService.encrypt(dto.newPassword);
 
-    const user = await this.prisma.tb_user.update({
-      where: {
-        id: decodedToken.id
-      },
-      data: {
-        password: passwordHash
-      }
-    })
+    await this.prisma.$transaction(async (tx) => {
+
+      tx.tb_user.update({
+        where: {
+          email: dto.email
+        },
+        data: {
+          password: passwordHash
+        }
+      }),
+
+        tx.tb_password_reset.update({
+          where: {
+            id: record.id
+          },
+          data: {
+            used: true
+          }
+        })
+    });
 
     return { message: 'Password reset successfully!' }
   }

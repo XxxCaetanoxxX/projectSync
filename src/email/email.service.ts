@@ -61,35 +61,36 @@ export class EmailService {
 
   }
 
-  async sendForgotPasswordEmail(email: string, resetLink: string) {
+  async sendForgotPasswordEmail(email: string, code: string) {
     const mailOptions = {
       from: process.env.EMAIL,
       to: email,
       subject: 'Recupere sua senha',
-      text: 'Recuperação de senha',
+      text: 'Código de verificação para redefinição de senha',
       html: `
-      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
-        <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <h2 style="color: #4CAF50;">Recupere sua senha</h2>
-          <p style="font-size: 16px; color: #333333;">
-            Recebemos uma solicitação para redefinir a senha da sua conta.
-          </p>
-          <p style="font-size: 16px; color: #333333;">
-            Para criar uma nova senha, clique no botão abaixo:
-          </p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: #ffffff; text-decoration: none; border-radius: 5px; font-size: 16px;">
-              Redefinir Senha
-            </a>
-          </div>
-          <p style="font-size: 14px; color: #777;">
-            Se você não solicitou essa alteração, pode ignorar este e-mail.
-          </p>
-          <p style="margin-top: 40px; font-size: 12px; color: #aaaaaa; text-align: center;">
-            © ${new Date().getFullYear()} SyncEventos Inc.
-          </p>
+      
+    <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <h2 style="color: #4CAF50;">Recupere sua senha</h2>
+      <p style="font-size: 16px; color: #333333;">
+        Recebemos uma solicitação para redefinir a senha da sua conta.
+      </p>
+      <p style="font-size: 16px; color: #333333;">
+        Use o código abaixo no aplicativo para criar uma nova senha:
+      </p>
+      <div style="text-align: center; margin: 30px 0;">
+        <div style="display: inline-block; padding: 16px 32px; background-color: #f1f1f1; color: #333333; border-radius: 8px; font-size: 32px; letter-spacing: 8px; font-weight: bold;">
+          ${code}
         </div>
       </div>
+      <p style="font-size: 14px; color: #777;">
+        O código expira em 15 minutos. Se você não solicitou essa alteração, pode ignorar este e-mail.
+      </p>
+      <p style="margin-top: 40px; font-size: 12px; color: #aaaaaa; text-align: center;">
+        © ${new Date().getFullYear()} SyncEventos Inc.
+      </p>
+    </div>
+  </div>
         `
     };
 
