@@ -11,6 +11,10 @@ import { FindOneUserDto } from './dto/find-one-user.dto';
 import { CreateUserSE, DeleteUserSE, FindAllUsersSE, FindOneUserSE, FindUsersEventsSE, LoginSE, UpdateUserSE, UploadUserImageSE } from './users_swagger_exemples';
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { ForgotPasswordDto } from './dto/forgot_password.dto';
+import { ResetPasswordDto } from './dto/reset_password.dto';
+import { VerifyResetCodeDto } from './dto/verify_code.dto';
+import { HttpCode } from '@nestjs/common';
 
 @ApiBearerAuth()
 @Controller('users')
@@ -37,6 +41,46 @@ export class UsersController {
   })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Public()
+  @Post('send-email-forgot-password')
+  @ApiResponseUtil({
+    status: 201,
+    summary: 'Send email to reset password.',
+    example: {
+      message: "Email send!"
+    }
+  })
+  forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.usersService.requestPasswordReset(forgotPasswordDto);
+  }
+
+  @Public()
+  @Post('verify-reset-code')
+  @HttpCode(200)
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'Verify password.',
+    example: {
+      message: "Code is valid"
+    }
+  })
+  verifyResetCode(@Body() dto: VerifyResetCodeDto) {
+    return this.usersService.verifyResetCode(dto);
+  }
+
+  @Public()
+  @Patch('reset-password')
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'reset password.',
+    example: {
+      message: "Password reset successfully!"
+    }
+  })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.usersService.resetPassword(dto);
   }
 
   @Roles('ADMIN', 'ORGANIZER')
@@ -102,11 +146,6 @@ export class UsersController {
   ) file: Express.Multer.File, @Req() req: any) {
     return await this.usersService.uploadAvatarImage(req.user.id, file);
   }
-
-  // @Post('/buy/:eventId')
-  // buyTicket(@Param('eventId', ParseIntPipe) eventId: number, @Req() req: any) {
-  //   return this.usersService.buyTicket(eventId, req.user.id);
-  // }
 
   @Roles('ADMIN', 'ORGANIZER')
   @Get('/event/:eventId')

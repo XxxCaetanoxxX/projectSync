@@ -277,6 +277,15 @@ model th_batch_hist {
   changes              String?   @default("")
 }
 
+model tb_password_reset {
+  id        Int      @id @default(autoincrement())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime
+}
+
 enum Role {
   ADMIN
   ORGANIZER
