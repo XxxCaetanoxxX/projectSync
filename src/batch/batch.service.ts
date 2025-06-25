@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { UpdateBatchDto } from './dto/update-batch.dto';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
@@ -9,6 +9,22 @@ export class BatchService {
     private readonly prisma: PrismaExtendedService
   ) { }
   async create(createBatchDto: CreateBatchDto) {
+
+    const batchExistsOnDate = await this.prisma.tb_batch.findFirst({
+      where: {
+        ticket_type_id: createBatchDto.ticket_type_id,
+        startDate: {
+          lte: createBatchDto.endDate
+        },
+        endDate: {
+          gte: createBatchDto.startDate
+        }
+      }
+    })
+
+    if (batchExistsOnDate) {
+      throw new ConflictException("There is another batch on this date.");
+    }
 
     const batch = await this.prisma.withAudit.tb_batch.create({
       data: {
@@ -74,19 +90,34 @@ export class BatchService {
   }
 
   async update(id: number, updateBatchDto: UpdateBatchDto) {
-    const batch = await this.prisma.withAudit.tb_batch.update({
+
+    const batchExistsOnDate = await this.prisma.tb_batch.findFirst({
       where: {
-        id
-      },
+        id: { not: id },
+        ticket_type_id: updateBatchDto.ticket_type_id,
+        startDate: { lte: updateBatchDto.endDate },
+        endDate: { gte: updateBatchDto.startDate }
+      }
+    });
+
+    if (batchExistsOnDate) {
+      throw new BadRequestException(
+        "There is another batch on this date."
+      );
+    }
+
+    const batch = await this.prisma.withAudit.tb_batch.update({
+      where: { id },
       data: {
         ...updateBatchDto,
         nu_versao: { increment: 1 }
       }
-    })
+    });
 
     return {
-      message: "Batch updated successfully!", data: batch
-    }
+      message: "Batch updated successfully!",
+      data: batch
+    };
   }
 
   async remove(id: number) {
