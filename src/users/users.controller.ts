@@ -13,6 +13,7 @@ import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorat
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ForgotPasswordDto } from './dto/forgot_password.dto';
 import { ResetPasswordDto } from './dto/reset_password.dto';
+import { VerifyResetCodeDto } from './dto/verify_code.dto';
 
 @ApiBearerAuth()
 @Controller('users')
@@ -58,6 +59,12 @@ export class UsersController {
   @Post('reset-password')
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.usersService.resetPassword(dto);
+  }
+
+  @Public()
+  @Post('verify-reset-code')
+  verifyResetCode(@Body() dto: VerifyResetCodeDto) {
+    return this.usersService.verifyResetCode(dto);
   }
 
   @Roles('ADMIN', 'ORGANIZER')

@@ -12,6 +12,8 @@ import { datenow } from 'src/commom/utils/datenow';
 import { ForgotPasswordDto } from './dto/forgot_password.dto';
 import { EmailService } from 'src/email/email.service';
 import { ResetPasswordDto } from './dto/reset_password.dto';
+import { VerifyResetCodeDto } from './dto/verify_code.dto';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class UsersService {
@@ -66,12 +68,15 @@ export class UsersService {
 
     const code = Math.floor(100000 + Math.random() * 900000).toString(); // Gerar um código de 6 dígitos
 
-
     await this.prisma.tb_password_reset.create({
       data: {
         code,
         email,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 15), //vai xpirar em 15 minutos
+        expiresAt: DateTime.now()
+          .minus({ hours: 3 })     // subtrai 3 horas para adaptar ao horario do brasil
+          .plus({ minutes: 15 })  // add 15 minutos para tempo de expiracao      
+          .toJSDate(),
+        createdAt: datenow()
       }
     })
 
@@ -80,39 +85,55 @@ export class UsersService {
     return { message: 'Code sent to registred email!' };
   }
 
-  async resetPassword(dto: ResetPasswordDto) {
+  async verifyResetCode(dto: VerifyResetCodeDto) {
     const record = await this.prisma.tb_password_reset.findFirst({
       where: {
-        code: dto.code,
         email: dto.email,
+        code: dto.code,
         used: false,
-        expiresAt: { gte: new Date() }
+        expiresAt: { gte: datenow() },
       }
-    })
+    });
 
-    if (!record) throw new BadRequestException('Invalid code or expired!');
+    if (!record) throw new BadRequestException('Invalid or expired code');
+
+    return { message: 'Code is valid' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+
+    const record = await this.prisma.tb_password_reset.findFirst({
+      where: {
+        email: dto.email,
+        code: dto.code,
+        used: false,
+        expiresAt: { gte: datenow() }
+      }
+    });
+
+    if (!record) throw new BadRequestException('Invalid or expired code');
 
     const passwordHash = await this.hashingService.encrypt(dto.newPassword);
 
     await this.prisma.$transaction(async (tx) => {
 
-      tx.tb_user.update({
+      await tx.tb_user.update({
         where: {
           email: dto.email
         },
         data: {
           password: passwordHash
         }
-      }),
+      });
 
-        tx.tb_password_reset.update({
-          where: {
-            id: record.id
-          },
-          data: {
-            used: true
-          }
-        })
+      await tx.tb_password_reset.update({
+        where: {
+          id: record.id
+        },
+        data: {
+          used: true
+        }
+      });
     });
 
     return { message: 'Password reset successfully!' }
