@@ -1,0 +1,35 @@
+version: '3.3'
+
+services:
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - 6379:6379
+    container_name: container_redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - networkbackend
+
+  backend:
+    depends_on:
+      - redis
+    build: ./
+    image: img_backend_eventos
+    ports:
+      - 3000:3000
+    container_name: container_backend
+    env_file:
+      - ./.env
+    networks:
+      - networkbackend
+    environment:
+      - DATABASE_URL=${DATABASE_URL_IPV4}
+
+volumes:
+  redis_data: {}
+
+networks:
+  networkbackend:
+    driver: bridge
