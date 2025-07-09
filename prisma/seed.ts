@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcryptjs from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -128,6 +129,8 @@ async function main() {
                 data: {
                     ticketName: `Ingresso Tipo ${i} - ${event.name}`,
                     batch_id: batch1.id,
+                    isUsed: false,
+                    code: uuidv4(),
                     ticketTypeId: ticketType.id,
                     userId: participant.id
                 }
