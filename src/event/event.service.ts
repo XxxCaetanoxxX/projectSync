@@ -8,6 +8,7 @@ import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.servic
 import { UsersService } from '../users/users.service';
 import { RolesEnum } from "../commom/enums/roles.enum";
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
+import { datenow } from 'src/commom/utils/datenow';
 
 
 
@@ -102,10 +103,10 @@ export class EventService {
             batchs: {
               where: {
                 startDate: {
-                  lte: new Date()
+                  lte: datenow()
                 },
                 endDate: {
-                  gte: new Date()
+                  gte: datenow()
                 },
               }
             }

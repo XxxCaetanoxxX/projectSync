@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable } from '@nestjs/comm
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { UpdateBatchDto } from './dto/update-batch.dto';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
+import { datenow } from 'src/commom/utils/datenow';
 
 @Injectable()
 export class BatchService {
@@ -46,10 +47,10 @@ export class BatchService {
         AND: [
           {
             startDate: {
-              lte: new Date()
+              lte: datenow()
             },
             endDate: {
-              gte: new Date()
+              gte: datenow()
             },
             tb_ticket_type: {
               eventId
