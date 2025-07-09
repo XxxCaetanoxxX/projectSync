@@ -1,14 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketTypeDto } from './dto/create-ticket-type.dto';
 import { FindAllTicketDto } from './dto/find-all-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
 import { EmailService } from '../email/email.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
-import { BuyTicketDto } from './dto/buy-ticket.dto';
-import { type } from 'os';
 import { datenow } from 'src/commom/utils/datenow';
+import { v4 as uuidv4 } from 'uuid';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class TicketService {
@@ -207,12 +206,16 @@ export class TicketService {
 
       const ticketName = `${ticketType.name} - ${ticketType.event.name}`
 
+      const code = uuidv4();
+
       const ticket = await tx.tb_ticket.create({
         data: {
           ticketTypeId,
           batch_id: ticketType.batchs[0].id,
           ticketName,
           userId,
+          code,
+          isUsed: false,
         },
         select: {
           id: true,
@@ -258,6 +261,42 @@ export class TicketService {
       message: "Ticket bought successfully!",
       data: ticketData
     }
+  }
+
+  //TODO: Emitir evento para atualizar a tela do usuario que comprou
+  async validateTicket(code: string) {
+    const ticket = await this.prisma.tb_ticket.findUnique({
+      where: {
+        code: code
+      },
+    })
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found!');
+    }
+
+    if (ticket.isUsed) {
+      throw new BadRequestException('Ticket already used!');
+    }
+
+    await this.prisma.withAudit.tb_ticket.update({
+      where: {
+        code: code
+      },
+      data: {
+        isUsed: true,
+        nu_versao: { increment: 1 },
+        dt_validation: datenow()
+      }
+    })
+
+    return { message: "Ticket validated successfully!" }
+  }
+
+  async generateQRCode(ticketId: number) {
+    const ticket = await this.findOneTicket(ticketId);
+    const buffer = await QRCode.toBuffer(ticket.code);
+    return buffer
   }
 
   async findUserTickets(userId: number) {
@@ -381,6 +420,7 @@ export class TicketService {
         dt_alteracao: true,
         ticketTypeId: true,
         userId: true,
+        code: true,
         user: {
           select: {
             email: true,
@@ -415,7 +455,8 @@ export class TicketService {
       event_name: ticket.ticket_type.event.name,
       ticket_type_name: ticket.ticket_type.name,
       user_name: ticket.user.name,
-      user_email: ticket.user.email
+      user_email: ticket.user.email,
+      code: ticket.code
     }
   }
 

@@ -94,6 +94,9 @@ model tb_ticket {
   batch_id             Int
   ticketTypeId         Int
   userId               Int
+  code                 String         @unique
+  isUsed               Boolean
+  dt_validation        DateTime?
   dt_criacao           DateTime?
   dt_alteracao         DateTime?
   operation            String?
@@ -115,6 +118,9 @@ model th_ticket_hist {
   ticketName           String
   ticketTypeId         Int
   userId               Int
+  code                 String
+  isUsed               Boolean
+  dt_validation        DateTime?
   dt_criacao           DateTime?
   dt_alteracao         DateTime?
   operation            String?
