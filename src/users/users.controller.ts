@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Req, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Req, UseInterceptors, UploadedFile, UseGuards, ParseFilePipeBuilder, HttpStatus, Res } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -15,6 +15,8 @@ import { ForgotPasswordDto } from './dto/forgot_password.dto';
 import { ResetPasswordDto } from './dto/reset_password.dto';
 import { VerifyResetCodeDto } from './dto/verify_code.dto';
 import { HttpCode } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
 
 @ApiBearerAuth()
 @Controller('users')
@@ -30,6 +32,22 @@ export class UsersController {
   @Public()
   login(@Body() loginDto: LoginDto) {
     return this.usersService.login(loginDto);
+  }
+
+  @Public()
+  @Get('/login/google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+
+  }
+
+  @Public()
+  @Get('/google/redirect')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+    return this.usersService.verifySocialLogin(req.user);
+    // return res.redirect('https://www.youtube.com/')
+    // TODO: redirecionar para url do frontend
   }
 
   @Public()

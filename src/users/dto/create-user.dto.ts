@@ -28,5 +28,5 @@ export class CreateUserDto {
 
     @ApiProperty({ enum: RolesEnum })
     @IsEnum(RolesEnum)
-    role: RolesEnum;
+    role: RolesEnum = RolesEnum.PARTICIPANT;
 }
