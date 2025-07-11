@@ -44,8 +44,14 @@ export class UsersController {
   @Public()
   @Get('/google/redirect')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    return this.usersService.verifySocialLogin(req.user);
+  async googleAuthRedirect(@Req() req
+    // , @Res() res: Response
+  ) {
+    const token = await this.usersService.verifySocialLogin(req.user);
+    return {
+      message: 'Login realizado com sucesso!',
+      token: token
+    }
     // return res.redirect('https://www.youtube.com/')
     // TODO: redirecionar para url do frontend
   }

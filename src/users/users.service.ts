@@ -329,7 +329,7 @@ export class UsersService {
     })
 
     if (!user) {
-      await this.prisma.$transaction(async (tx) => {
+      user = await this.prisma.$transaction(async (tx) => {
         const createdUser = await tx.tb_user.create({
           data: {
             name: `${firstName} ${lastName}`,
@@ -349,7 +349,7 @@ export class UsersService {
           },
         });
 
-        user = await tx.tb_user.update({
+        return await tx.tb_user.update({
           where: { id: createdUser.id },
           data: {
             imageId: createdImage.id,
@@ -362,7 +362,6 @@ export class UsersService {
     if (user.authType != AuthEnum.GOOGLE) {
       return new BadRequestException('Your login need password.')
     }
-
-    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY, { expiresIn: '5d' });
+    return await jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY, { expiresIn: '5d' });
   }
 }
