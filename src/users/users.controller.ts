@@ -44,7 +44,7 @@ export class UsersController {
   @Get('/google/redirect')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req) {
-    return req.user;
+    return this.usersService.verifySocialLogin(req.user);
   }
 
   @Public()

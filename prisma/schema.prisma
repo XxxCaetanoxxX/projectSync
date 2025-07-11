@@ -10,11 +10,12 @@ datasource db {
 model tb_user {
   id                   Int            @id @default(autoincrement())
   name                 String
-  cpf                  String         @unique
+  cpf                  String?        @unique
   email                String         @unique
-  phone                String         @unique
-  password             String
+  phone                String?        @unique
+  password             String?
   role                 Role
+  authType             AuthType       @default(CREDENTIAL) //TODO remover
   imageId              Int?           @unique
   dt_criacao           DateTime?
   dt_alteracao         DateTime?
@@ -296,4 +297,9 @@ enum Role {
   ADMIN
   ORGANIZER
   PARTICIPANT
+}
+
+enum AuthType {
+  CREDENTIAL
+  GOOGLE
 }

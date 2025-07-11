@@ -14,6 +14,9 @@ import { EmailService } from 'src/email/email.service';
 import { ResetPasswordDto } from './dto/reset_password.dto';
 import { VerifyResetCodeDto } from './dto/verify_code.dto';
 import { DateTime } from 'luxon';
+import { AuthEnum } from 'src/commom/enums/auth.enum';
+import { SocialUserDto } from './dto/social_user.dto';
+import { RolesEnum } from 'src/commom/enums/roles.enum';
 
 @Injectable()
 export class UsersService {
@@ -56,7 +59,8 @@ export class UsersService {
       {
         data: {
           ...createUserDto,
-          password: passwordHash
+          password: passwordHash,
+          authType: AuthEnum.CREDENTIAL
         }
       }
     );
@@ -65,6 +69,8 @@ export class UsersService {
   async requestPasswordReset({ email, ...dto }: ForgotPasswordDto) {
     const user = await this.prisma.tb_user.findFirst({ where: { email } });
     if (!user) throw new NotFoundException('User not found with the email provided!');
+
+    if (user.authType != AuthEnum.CREDENTIAL) throw new BadRequestException('Users not registred with passwords can not request password reset!');
 
     const code = Math.floor(100000 + Math.random() * 900000).toString(); // Gerar um código de 6 dígitos
 
@@ -313,5 +319,50 @@ export class UsersService {
       message: "Event participants found successfully!",
       data: participants
     }
+  }
+
+  async verifySocialLogin({ email, firstName, lastName, picture, ...dto }: SocialUserDto) {
+    let user = await this.prisma.tb_user.findUnique({
+      where: {
+        email,
+      }
+    })
+
+    if (!user) {
+      await this.prisma.$transaction(async (tx) => {
+        const createdUser = await tx.tb_user.create({
+          data: {
+            name: `${firstName} ${lastName}`,
+            email,
+            role: RolesEnum.PARTICIPANT,
+            authType: AuthEnum.GOOGLE,
+            cpf: null,
+            phone: null,
+            password: null,
+          },
+        });
+
+        const createdImage = await tx.tb_user_image.create({
+          data: {
+            userId: createdUser.id,
+            path: picture,
+          },
+        });
+
+        user = await tx.tb_user.update({
+          where: { id: createdUser.id },
+          data: {
+            imageId: createdImage.id,
+          },
+        });
+      });
+    }
+
+
+    if (user.authType != AuthEnum.GOOGLE) {
+      return new BadRequestException('Your login need password.')
+    }
+
+    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY, { expiresIn: '5d' });
   }
 }
