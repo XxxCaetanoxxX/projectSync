@@ -18,7 +18,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     }
 
     const { status, message } = this.mapPrismaError(exception);
-    
+
     return response.status(status).json({
       statusCode: status,
       message,
@@ -48,5 +48,5 @@ export class PrismaExceptionFilter implements ExceptionFilter {
         return { status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'A database error occurred.' };
     }
   }
-  
+
 }

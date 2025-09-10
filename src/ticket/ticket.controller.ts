@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Query,
   Req,
+  Res,
 } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
@@ -19,7 +20,11 @@ import { Roles } from '../commom/decorators/roles_decorator.decorator'
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
 import { BuyTicketSE, CreateTicketSE, FindAllEventTypesSE, FindAllTicketsSE, FindOneTicketSE, FindOneTypeSE, FindUserTicketsSE, UpdateTicketSE, UpdateTypeSE } from './tickets_swagger_exemple';
 import { Public } from 'src/commom/decorators/public_decorator.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { Response } from 'express';
+import { BuyTicketDto } from './dto/buy-ticket.dto';
 
+@ApiBearerAuth()
 @Controller('ticket')
 export class TicketController {
   constructor(private readonly ticketService: TicketService) { }
@@ -105,6 +110,20 @@ export class TicketController {
   })
   findUserTickets(@Req() req: any) {
     return this.ticketService.findUserTickets(req.user.id);
+  }
+
+  @Roles('ORGANIZER', 'ADMIN')
+  @Get(':ticketCode/validate')
+  validateTicket(@Param('ticketCode') ticketCode: string) {
+    return this.ticketService.validateTicket(ticketCode);
+  }
+
+  @Roles('ORGANIZER', 'ADMIN')
+  @Get(':ticketId/qrcode')
+  async getQRCode(@Param('ticketId', ParseIntPipe) ticketId: number, @Res() res: Response) {
+    const buffer = await this.ticketService.generateQRCode(ticketId);
+    res.setHeader('Content-Type', 'image/png');
+    res.send(buffer)
   }
 
   @Roles('ORGANIZER', 'ADMIN')

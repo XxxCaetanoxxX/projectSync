@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Req, UseInterceptors, UploadedFile, UploadedFiles, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, Req, UseInterceptors, UploadedFile, UseGuards, ParseFilePipeBuilder, HttpStatus, Res } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,7 +10,15 @@ import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
 import { CreateUserSE, DeleteUserSE, FindAllUsersSE, FindOneUserSE, FindUsersEventsSE, LoginSE, UpdateUserSE, UploadUserImageSE } from './users_swagger_exemples';
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { ForgotPasswordDto } from './dto/forgot_password.dto';
+import { ResetPasswordDto } from './dto/reset_password.dto';
+import { VerifyResetCodeDto } from './dto/verify_code.dto';
+import { HttpCode } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
 
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
@@ -27,6 +35,28 @@ export class UsersController {
   }
 
   @Public()
+  @Get('/login/google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+
+  }
+
+  @Public()
+  @Get('/google/redirect')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req
+    // , @Res() res: Response
+  ) {
+    const token = await this.usersService.verifySocialLogin(req.user);
+    return {
+      message: 'Login realizado com sucesso!',
+      token: token
+    }
+    // return res.redirect('https://www.youtube.com/')
+    // TODO: redirecionar para url do frontend
+  }
+
+  @Public()
   @Post()
   @ApiResponseUtil({
     status: 201,
@@ -37,6 +67,46 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @Public()
+  @Post('send-email-forgot-password')
+  @ApiResponseUtil({
+    status: 201,
+    summary: 'Send email to reset password.',
+    example: {
+      message: "Email send!"
+    }
+  })
+  forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.usersService.requestPasswordReset(forgotPasswordDto);
+  }
+
+  @Public()
+  @Post('verify-reset-code')
+  @HttpCode(200)
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'Verify password.',
+    example: {
+      message: "Code is valid"
+    }
+  })
+  verifyResetCode(@Body() dto: VerifyResetCodeDto) {
+    return this.usersService.verifyResetCode(dto);
+  }
+
+  @Public()
+  @Patch('reset-password')
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'reset password.',
+    example: {
+      message: "Password reset successfully!"
+    }
+  })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.usersService.resetPassword(dto);
+  }
+
   @Roles('ADMIN', 'ORGANIZER')
   @Get()
   @ApiResponseUtil({
@@ -44,7 +114,7 @@ export class UsersController {
     summary: 'Find all users.',
     example: FindAllUsersSE
   })
-  findAll(@Query() findAllUsersDto: FindAllUsersDto) {
+  findAll(@Query() findAllUsersDto?: FindAllUsersDto) {
     return this.usersService.findAll(findAllUsersDto);
   }
 
@@ -101,11 +171,6 @@ export class UsersController {
     return await this.usersService.uploadAvatarImage(req.user.id, file);
   }
 
-  // @Post('/buy/:eventId')
-  // buyTicket(@Param('eventId', ParseIntPipe) eventId: number, @Req() req: any) {
-  //   return this.usersService.buyTicket(eventId, req.user.id);
-  // }
-
   @Roles('ADMIN', 'ORGANIZER')
   @Get('/event/:eventId')
   @ApiResponseUtil({
@@ -125,6 +190,6 @@ export class UsersController {
     example: DeleteUserSE
   })
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+    return this.usersService.delete(id);
   }
 }

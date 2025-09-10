@@ -1,138 +1,150 @@
-import { PrismaClient } from "@prisma/client";
-import * as bcrypt from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
+import * as bcryptjs from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    await prisma.tb_user.create({
-        data: {
-            name: 'Caetano',
-            cpf: '12345678901',
-            phone: '5531997728631',
-            email: 'caetano@gmail.com',
-            password: await bcrypt.hash('dpmg123', 10),
-            role: 'ADMIN'
-        }
-    });
+    const now = new Date();
+    const oneWeekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const hashedPassword = await bcryptjs.hash('dpmg123', 10);
 
-    await prisma.tb_user.create({
-        data: {
-            name: 'Arthur',
-            cpf: '12345678902',
-            email: 'arthur@gmail.com',
-            phone: '5531997728639',
-            password: await bcrypt.hash('dpmg123', 10),
-            role: 'ORGANIZER'
-        }
-    });
+    // Usuários
+    const [admin, organizer, participant] = await Promise.all([
+        prisma.tb_user.create({
+            data: {
+                name: 'Caetano',
+                cpf: '00000000000',
+                email: 'caetanocesar35@gmail.com',
+                phone: '1100000000',
+                password: hashedPassword,
+                role: 'ADMIN'
+            }
+        }),
+        prisma.tb_user.create({
+            data: {
+                name: 'Organizer User',
+                cpf: '11111111111',
+                email: 'organizer@example.com',
+                phone: '1111111111',
+                password: hashedPassword,
+                role: 'ORGANIZER'
+            }
+        }),
+        prisma.tb_user.create({
+            data: {
+                name: 'Participant User',
+                cpf: '22222222222',
+                email: 'participant@example.com',
+                phone: '1122222222',
+                password: hashedPassword,
+                role: 'PARTICIPANT'
+            }
+        })
+    ]);
 
-    await prisma.tb_user.create({
-        data: {
-            name: 'Gabriel',
-            cpf: '12345678903',
-            email: 'gabriel@gmail.com',
-            phone: '5531997728637',
-            password: await bcrypt.hash('dpmg123', 10),
-            role: 'PARTICIPANT'
-        }
-    });
+    // Casas de festa
+    const [house1, house2] = await Promise.all([
+        prisma.tb_party_house.create({
+            data: { name: 'House 1', address: 'Rua A, 123' }
+        }),
+        prisma.tb_party_house.create({
+            data: { name: 'House 2', address: 'Rua B, 456' }
+        })
+    ]);
 
-    await prisma.tb_artist.create({
-        data: {
-            name: 'Matue',
-        }
-    })
+    // Eventos
+    function getEventDates() {
+        const now = new Date();
+        const start = new Date(now);
+        start.setDate(start.getDate() + 7); // daqui a 7 dias
+        start.setHours(13, 0, 0, 0); // 13:00:00
 
-    await prisma.tb_artist.create({
-        data: {
-            name: 'wiu',
-        }
-    })
+        const end = new Date(start.getTime() + 24 * 60 * 60 * 1000); // +24 horas
 
-    await prisma.tb_artist.create({
-        data: {
-            name: 'teto',
-        }
-    })
+        return { start, end };
+    }
 
-    await prisma.tb_artist.create({
-        data: {
-            name: 'Ana Castela',
-        }
-    })
+    const { start: start1, end: end1 } = getEventDates();
+    const { start: start2, end: end2 } = getEventDates(); // pode ser igual, ou pode variar se quiser
 
-    await prisma.tb_artist.create({
-        data: {
-            name: 'Luan Santana',
-        }
-    })
+    const [event1, event2] = await Promise.all([
+        prisma.tb_event.create({
+            data: {
+                name: 'SARARA',
+                organizerId: organizer.id,
+                partyHouseId: house1.id,
+                nu_ingressos: 100,
+                dt_start: start1,
+                dt_end: end1
+            }
+        }),
+        prisma.tb_event.create({
+            data: {
+                name: 'Planeta Brasil',
+                organizerId: organizer.id,
+                partyHouseId: house2.id,
+                nu_ingressos: 100,
+                dt_start: start2,
+                dt_end: end2
+            }
+        })
+    ]);
 
-    await prisma.tb_party_house.create({
-        data: {
-            name: 'star 415',
-            address: 'Rua 1'
-        }
-    })
 
-    await prisma.tb_party_house.create({
-        data: {
-            name: 'palco da musica',
-            address: 'Rua 2'
-        }
-    })
+    // Tipos de ingresso + lotes + ingresso comprado
+    for (const event of [event1, event2]) {
+        for (let i = 1; i <= 2; i++) {
+            const ticketType = await prisma.tb_ticket_type.create({
+                data: {
+                    name: `Tipo ${i} - ${event.name}`,
+                    quantity: 100,
+                    eventId: event.id
+                }
+            });
 
-    await prisma.tb_event.create({
-        data: {
-            name: 'ultimo baile do ano',
-            organizerId: 1,
-            partyHouseId: 1,
-        }
-    })
+            const [batch1, batch2] = await Promise.all([
+                prisma.tb_batch.create({
+                    data: {
+                        name: `Lote 1 - Tipo ${i}`,
+                        price: 50,
+                        startDate: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 dias atrás
+                        endDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000), // 3 dias depois
+                        ticket_type_id: ticketType.id
+                    }
+                }),
+                prisma.tb_batch.create({
+                    data: {
+                        name: `Lote 2 - Tipo ${i}`,
+                        price: 80,
+                        startDate: new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000),
+                        endDate: new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000),
+                        ticket_type_id: ticketType.id
+                    }
+                })
+            ]);
 
-    await prisma.tb_event.create({
-        data: {
-            name: 'Pedro Leopoldo Rodeio Show',
-            organizerId: 1,
-            partyHouseId: 2,
+            // Criar ingresso no lote 1 para o participante
+            await prisma.tb_ticket.create({
+                data: {
+                    ticketName: `Ingresso Tipo ${i} - ${event.name}`,
+                    batch_id: batch1.id,
+                    isUsed: false,
+                    code: uuidv4(),
+                    ticketTypeId: ticketType.id,
+                    userId: participant.id
+                }
+            });
         }
-    })
-
-    await prisma.tb_artist_on_event.create({
-        data: {
-            artistId: 1,
-            eventId: 1
-        }
-    })
-
-    await prisma.tb_artist_on_event.create({
-        data: {
-            artistId: 2,
-            eventId: 1
-        }
-    })
-
-    await prisma.tb_artist_on_event.create({
-        data: {
-            artistId: 3,
-            eventId: 1
-        }
-    })
-
-    await prisma.tb_artist_on_event.create({
-        data: {
-            artistId: 4,
-            eventId: 2
-        }
-    })
-
-    await prisma.tb_artist_on_event.create({
-        data: {
-            artistId: 5,
-            eventId: 2
-        }
-    })
-
-    console.log('created');
+    }
 }
 
 main()
+    .then(() => {
+        console.log('Seed concluído com sucesso.');
+        return prisma.$disconnect();
+    })
+    .catch((e) => {
+        console.error(e);
+        return prisma.$disconnect();
+    });

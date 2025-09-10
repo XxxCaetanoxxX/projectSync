@@ -3,9 +3,10 @@ import { PartyHouseService } from './party_house.service';
 import { CreatePartyHouseDto } from './dto/create-party_house.dto';
 import { UpdatePartyHouseDto } from './dto/update-party_house.dto';
 import { FindAllPartyHouseDto } from './dto/find-all-party-house.dto';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { CreatePartyHouseSE, FindAllPartyHouseSE, FindOnePartyHouseSE, UpdatePartyHouseSE } from './party_house_swagger_exemples';
 
+@ApiBearerAuth()
 @Controller('party-house')
 export class PartyHouseController {
   constructor(private readonly partyHouseService: PartyHouseService) { }

@@ -2,9 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from 
 import { ArtistEventService } from './artist_event.service';
 import { CreateArtistEventDto } from './dto/create-artist_event.dto';
 import { UpdateArtistEventDto } from './dto/update-artist_event.dto';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { CreateArtistEventSE, DeleteArtistEventSE } from './artist_event_swagger_exemple';
 
+@ApiBearerAuth()
 @Controller('artist-event')
 export class ArtistEventController {
   constructor(private readonly artistEventService: ArtistEventService) { }

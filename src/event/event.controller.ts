@@ -9,8 +9,9 @@ import { CreateEventSE, DeleteEventSE, FindAllEventsSE, FindOneEventSE, UpdateEv
 import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
-
+@ApiBearerAuth()
 @Controller('events')
 export class EventController {
   constructor(private readonly eventService: EventService) { }
@@ -96,7 +97,7 @@ export class EventController {
     example: DeleteEventSE
   })
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.eventService.remove(id);
+    return this.eventService.delete(id);
   }
 
   @Roles('ADMIN', 'ORGANIZER')

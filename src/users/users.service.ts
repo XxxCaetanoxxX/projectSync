@@ -1,27 +1,36 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from '../prisma/prisma.service';
 import { HashingService } from '../hashing/hashing.service';
 import { LoginDto } from './dto/login.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
 import * as jwt from 'jsonwebtoken';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
+import { PrismaExtendedService } from '../prisma/prisma-extended.service';
+import { datenow } from 'src/commom/utils/datenow';
+import { ForgotPasswordDto } from './dto/forgot_password.dto';
+import { EmailService } from 'src/email/email.service';
+import { ResetPasswordDto } from './dto/reset_password.dto';
+import { VerifyResetCodeDto } from './dto/verify_code.dto';
+import { DateTime } from 'luxon';
+import { AuthEnum } from 'src/commom/enums/auth.enum';
+import { SocialUserDto } from './dto/social_user.dto';
+import { RolesEnum } from 'src/commom/enums/roles.enum';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaExtendedService,
     private readonly hashingService: HashingService,
-    private readonly bucketSupabaseService: BucketSupabaseService
+    private readonly bucketSupabaseService: BucketSupabaseService,
+    private readonly emailService: EmailService
   ) { }
 
   async login(loginDto: LoginDto) {
     const { email, phone, password } = loginDto;
 
     const providedParams = [email, phone].filter(param => param);
-
     if (providedParams.length === 0) {
       throw new BadRequestException("You must provide an email OR a phone.");
     } else if (providedParams.length > 1) {
@@ -46,23 +55,113 @@ export class UsersService {
 
   async create({ password, ...createUserDto }: CreateUserDto) {
     const passwordHash = await this.hashingService.encrypt(password);
-    return await this.prisma.tb_user.create(
+    return await this.prisma.withAudit.tb_user.create(
       {
         data: {
           ...createUserDto,
-          password: passwordHash
+          password: passwordHash,
+          authType: AuthEnum.CREDENTIAL
         }
       }
     );
   }
 
-  async findAll({ name, ...dto }: FindAllUsersDto) {
+  async requestPasswordReset({ email, ...dto }: ForgotPasswordDto) {
+    const user = await this.prisma.tb_user.findFirst({ where: { email } });
+    if (!user) throw new NotFoundException('User not found with the email provided!');
+
+    if (user.authType != AuthEnum.CREDENTIAL) throw new BadRequestException('Users not registred with passwords can not request password reset!');
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString(); // Gerar um código de 6 dígitos
+
+    await this.prisma.tb_password_reset.create({
+      data: {
+        code,
+        email,
+        expiresAt: DateTime.now()
+          .minus({ hours: 3 })     // subtrai 3 horas para adaptar ao horario do brasil
+          .plus({ minutes: 15 })  // add 15 minutos para tempo de expiracao      
+          .toJSDate(),
+        createdAt: datenow()
+      }
+    })
+
+    await this.emailService.sendForgotPasswordEmail(user.email, code);
+
+    return { message: 'Code sent to registred email!' };
+  }
+
+  async verifyResetCode(dto: VerifyResetCodeDto) {
+    const record = await this.prisma.tb_password_reset.findFirst({
+      where: {
+        email: dto.email,
+        code: dto.code,
+        used: false,
+        expiresAt: { gte: datenow() },
+      }
+    });
+
+    if (!record) throw new BadRequestException('Invalid or expired code');
+
+    return { message: 'Code is valid' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+
+    const record = await this.prisma.tb_password_reset.findFirst({
+      where: {
+        email: dto.email,
+        code: dto.code,
+        used: false,
+        expiresAt: { gte: datenow() }
+      }
+    });
+
+    if (!record) throw new BadRequestException('Invalid or expired code');
+
+    const passwordHash = await this.hashingService.encrypt(dto.newPassword);
+
+    await this.prisma.$transaction(async (tx) => {
+
+      await tx.tb_user.update({
+        where: {
+          email: dto.email
+        },
+        data: {
+          password: passwordHash
+        }
+      });
+
+      await tx.tb_password_reset.update({
+        where: {
+          id: record.id
+        },
+        data: {
+          used: true
+        }
+      });
+    });
+
+    return { message: 'Password reset successfully!' }
+  }
+
+  async findAll({ name, cpf, email, phone, skip, take, ...dto }: FindAllUsersDto) {
     return await this.prisma.tb_user.findMany({
       where: {
-        ...dto,
+        cpf: {
+          contains: cpf
+        },
+        email: {
+          contains: email,
+          mode: 'insensitive'
+        },
+        phone: {
+          contains: phone
+        },
         name: {
           contains: name
         },
+        ...dto,
       },
       include: {
         image: {
@@ -71,7 +170,9 @@ export class UsersService {
             path: true
           }
         }
-      }
+      },
+      skip,
+      take
     });
   }
 
@@ -122,21 +223,35 @@ export class UsersService {
   }
 
 
-  async update(id: number, { ...updateUserDto }: UpdateUserDto) {
-    return await this.prisma.tb_user.update({
-      where: {
-        id
-      },
-      data: {
-        ...updateUserDto
-      },
+  async update(id: number, { password, ...updateUserDto }: UpdateUserDto) {
+    let dataToUpdate: any = {
+      nu_versao: { increment: 1 },
+      ...updateUserDto,
+    };
+
+    //se tiver que atualizar a senha, adiciona em dados para atualizar
+    if (password) {
+      const passwordHash = await this.hashingService.encrypt(password);
+      dataToUpdate.password = passwordHash;
+    }
+
+    const res = await this.prisma.withAudit.tb_user.update({
+      where: { id },
+      data: dataToUpdate,
     });
+
+    return {
+      message: "User updated!",
+      data: res
+    }
   }
 
-  async remove(id: number) {
-    return await this.prisma.tb_user.delete({
+
+  async delete(id: number) {
+    const user = await this.prisma.withAudit.tb_user.delete({
       where: { id }
     });
+    return { message: "User deleted successfully!", data: user }
   }
 
   async uploadAvatarImage(id: number, file: Express.Multer.File) {
@@ -204,5 +319,49 @@ export class UsersService {
       message: "Event participants found successfully!",
       data: participants
     }
+  }
+
+  async verifySocialLogin({ email, firstName, lastName, picture, ...dto }: SocialUserDto) {
+    let user = await this.prisma.tb_user.findUnique({
+      where: {
+        email,
+      }
+    })
+
+    if (!user) {
+      user = await this.prisma.$transaction(async (tx) => {
+        const createdUser = await tx.tb_user.create({
+          data: {
+            name: `${firstName} ${lastName}`,
+            email,
+            role: RolesEnum.PARTICIPANT,
+            authType: AuthEnum.GOOGLE,
+            cpf: null,
+            phone: null,
+            password: null,
+          },
+        });
+
+        const createdImage = await tx.tb_user_image.create({
+          data: {
+            userId: createdUser.id,
+            path: picture,
+          },
+        });
+
+        return await tx.tb_user.update({
+          where: { id: createdUser.id },
+          data: {
+            imageId: createdImage.id,
+          },
+        });
+      });
+    }
+
+
+    if (user.authType != AuthEnum.GOOGLE) {
+      return new BadRequestException('Your login need password.')
+    }
+    return await jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY, { expiresIn: '5d' });
   }
 }

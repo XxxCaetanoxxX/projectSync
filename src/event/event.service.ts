@@ -7,13 +7,15 @@ import { PdfService } from '../pdf/pdf.service';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 import { UsersService } from '../users/users.service';
 import { RolesEnum } from "../commom/enums/roles.enum";
+import { PrismaExtendedService } from '../prisma/prisma-extended.service';
+import { datenow } from 'src/commom/utils/datenow';
 
 
 
 @Injectable()
 export class EventService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaExtendedService,
     private readonly pdfService: PdfService,
     private readonly bucketSupabaseService: BucketSupabaseService,
     private readonly usersService: UsersService
@@ -21,19 +23,25 @@ export class EventService {
 
   async create({ ...createEventDto }: CreateEventDto, userId: number) {
     const user = await this.usersService.findOne({ id: userId });
-    if (user.role !== RolesEnum.ORGANIZER && user.role !== RolesEnum.ADMIN) {
+    if (user.role === RolesEnum.PARTICIPANT) {
       await this.usersService.update(userId, { role: RolesEnum.ORGANIZER });
     }
 
-    return await this.prisma.tb_event.create({ data: { ...createEventDto, organizerId: userId } });
+    return await this.prisma.withAudit.tb_event.create({
+      data: {
+        ...createEventDto,
+        organizerId: userId
+      }
+    });
   }
 
-  async findAll({ name, ...dto }: FindAllEventsDto) {
+  async findAll({ name, skip, take, ...dto }: FindAllEventsDto) {
     return await this.prisma.tb_event.findMany({
       where: {
         ...dto,
         name: {
-          contains: name
+          contains: name,
+          mode: 'insensitive',
         }
       },
       omit: {
@@ -67,6 +75,8 @@ export class EventService {
           }
         }
       },
+      skip,
+      take
     });
   }
 
@@ -95,6 +105,20 @@ export class EventService {
             path: true
           }
         },
+        ticketTypes: {
+          include: {
+            batchs: {
+              where: {
+                startDate: {
+                  lte: datenow()
+                },
+                endDate: {
+                  gte: datenow()
+                },
+              }
+            }
+          }
+        }
       },
     });
 
@@ -104,7 +128,8 @@ export class EventService {
       name: event.name,
       party_house: event.party_house.name,
       artists: event.artists.map(a => a.artist),
-      images: event.images
+      images: event.images,
+      ticketTypes: event.ticketTypes
     }
   }
 
@@ -172,10 +197,15 @@ export class EventService {
       throw new BadRequestException("You are not allowed to update this event!");
     }
 
-    return await this.prisma.tb_event.update({ where: { id }, data: { ...updateEventDto } });
+    return await this.prisma.withAudit.tb_event.update({
+      where: { id }, data: {
+        nu_versao: { increment: 1 },
+        ...updateEventDto
+      }
+    });
   }
 
-  async remove(id: number) {
-    return await this.prisma.tb_event.delete({ where: { id } });
+  async delete(id: number) {
+    return await this.prisma.withAudit.tb_event.delete({ where: { id } });
   }
 }
