@@ -1,6 +1,3 @@
--- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'ORGANIZER', 'PARTICIPANT');
-
 -- CreateTable
 CREATE TABLE "tb_user" (
     "id" SERIAL NOT NULL,
