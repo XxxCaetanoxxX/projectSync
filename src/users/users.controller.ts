@@ -17,6 +17,8 @@ import { VerifyResetCodeDto } from './dto/verify_code.dto';
 import { HttpCode } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
+import { RefreshTokenGuard } from 'src/commom/guards/refresh_token.guard';
+import { SkipAuthGuard } from 'src/commom/decorators/skip_guard';
 
 @ApiBearerAuth()
 @Controller('users')
@@ -32,6 +34,20 @@ export class UsersController {
   @Public()
   login(@Body() loginDto: LoginDto) {
     return this.usersService.login(loginDto);
+  }
+
+  @SkipAuthGuard()
+  @UseGuards(RefreshTokenGuard)
+  @Roles('ADMIN', 'ORGANIZER', 'PARTICIPANT')
+  @Post('refresh')
+  async refresh(@Req() req: any) {
+    const token = req.headers.authorization.split(' ')[1];
+    return this.usersService.refreshToken(token, req.user.id);
+  }
+
+  @Post('logout')
+  async logout(@Req() req) {
+    return this.usersService.logout(req.user.id);
   }
 
   @Public()
@@ -137,6 +153,7 @@ export class UsersController {
     example: FindOneUserSE
   })
   findLoggedUser(@Req() req: any) {
+    console.log(req.user)
     return this.usersService.findLoggedUser(req.user.id);
   }
 

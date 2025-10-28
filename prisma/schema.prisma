@@ -17,6 +17,7 @@ model tb_user {
   role                 Role
   authType             AuthType       @default(CREDENTIAL) //TODO remover
   imageId              Int?           @unique
+  refresh_token        String?
   dt_criacao           DateTime?
   dt_alteracao         DateTime?
   operation            String?

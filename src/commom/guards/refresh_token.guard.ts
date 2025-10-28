@@ -2,19 +2,20 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Unauthor
 import { Reflector } from '@nestjs/core';
 import * as jwt from 'jsonwebtoken';
 import { Observable } from 'rxjs';
+import { PrismaExtendedService } from 'src/prisma/prisma-extended.service';
+import * as bcrypt from 'bcryptjs';
+
 
 @Injectable()
-export class TokenRoleGuard implements CanActivate {
+export class RefreshTokenGuard implements CanActivate {
   constructor(private reflector: Reflector) { }
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    if (this.isPublicRoute(context) || this.shouldSkipGuard(context)) {
-      return true;
-    }
-
+    if (this.isPublicRoute(context)) return true;
+    
     const requiredRoles = this.getRequiredRoles(context);
     if (!requiredRoles) return true
 
@@ -44,10 +45,11 @@ export class TokenRoleGuard implements CanActivate {
 
   private validateToken(token: string) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-      if (decoded.type !== 'access') throw new UnauthorizedException('Invalid token type!');
+      const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+      if (decoded.type !== 'refresh') throw new UnauthorizedException('Invalid token type!');
       return decoded;
-    } catch {
+    } catch (err){
+      console.log(err)
       throw new UnauthorizedException('Invalid token!');
     }
   }
@@ -60,4 +62,5 @@ export class TokenRoleGuard implements CanActivate {
   private shouldSkipGuard(context: ExecutionContext): boolean {
     return this.reflector.get<boolean>('skipAuthGuard', context.getHandler()) ?? false;
   }
+  
 }
