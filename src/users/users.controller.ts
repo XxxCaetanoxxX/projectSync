@@ -16,9 +16,7 @@ import { ResetPasswordDto } from './dto/reset_password.dto';
 import { VerifyResetCodeDto } from './dto/verify_code.dto';
 import { HttpCode } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Response } from 'express';
-import { RefreshTokenGuard } from 'src/commom/guards/refresh_token.guard';
-import { SkipAuthGuard } from 'src/commom/decorators/skip_guard';
+import { TokenType } from 'src/commom/decorators/token_type.decorator';
 
 @ApiBearerAuth()
 @Controller('users')
@@ -36,9 +34,8 @@ export class UsersController {
     return this.usersService.login(loginDto);
   }
 
-  @SkipAuthGuard()
-  @UseGuards(RefreshTokenGuard)
   @Roles('ADMIN', 'ORGANIZER', 'PARTICIPANT')
+  @TokenType('refresh')
   @Post('refresh')
   async refresh(@Req() req: any) {
     const token = req.headers.authorization.split(' ')[1];

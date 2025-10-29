@@ -53,8 +53,6 @@ export class UsersService {
     await this.saveRefreshToken(user.id, tokens.refreshToken);
 
     return tokens;
-
-    // return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRET);
   }
 
   generateTokens(user: any) {
@@ -65,7 +63,7 @@ export class UsersService {
       role: user.role
     }
 
-    const accessToken = jwt.sign({ ...payload, type: 'access' }, process.env.JWT_ACCESS_SECRET, { expiresIn: '1m' });
+    const accessToken = jwt.sign({ ...payload, type: 'access' }, process.env.JWT_ACCESS_SECRET, { expiresIn: '15m' });
     const refreshToken = jwt.sign({ ...payload, type: 'refresh' }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
     return { accessToken, refreshToken };
@@ -418,6 +416,10 @@ export class UsersService {
     if (user.authType != AuthEnum.GOOGLE) {
       return new BadRequestException('Your login need password.')
     }
-    return await jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_ACCESS_SECRET, { expiresIn: '7d' });
+
+    const tokens = this.generateTokens(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
   }
 }

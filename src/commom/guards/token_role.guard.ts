@@ -1,37 +1,48 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import * as jwt from 'jsonwebtoken';
 import { Observable } from 'rxjs';
 
 @Injectable()
 export class TokenRoleGuard implements CanActivate {
-  constructor(private reflector: Reflector) { }
+  constructor(private reflector: Reflector) {}
+
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    if (this.isPublicRoute(context) || this.shouldSkipGuard(context)) {
-      return true;
-    }
+    // Permite rotas públicas
+    if (this.isPublicRoute(context)) return true;
 
+    // Verifica roles exigidos
     const requiredRoles = this.getRequiredRoles(context);
-    if (!requiredRoles) return true
+    if (!requiredRoles) return true;
 
+    // Extrai o token
     const token = this.extractToken(request);
     if (!token) throw new UnauthorizedException('Token not found!');
 
-    const user = this.validateToken(token);
-    request['user'] = user
+    // Valida token e atribui user à request
+    const user = this.validateToken(token, context);
+    request['user'] = user;
 
-    if (!this.hasRequiredRoles(user, requiredRoles)) throw new ForbiddenException('You dont have permission to access this route!');
+    // Verifica permissões
+    if (!this.hasRequiredRoles(user, requiredRoles))
+      throw new ForbiddenException('You dont have permission to access this route!');
 
     return true;
   }
 
-  extractToken(request) {
+  private extractToken(request: any) {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined
+    return type === 'Bearer' ? token : undefined;
   }
 
   private isPublicRoute(context: ExecutionContext): boolean {
@@ -42,22 +53,41 @@ export class TokenRoleGuard implements CanActivate {
     return this.reflector.get<string[]>('roles', context.getHandler()) ?? [];
   }
 
-  private validateToken(token: string) {
+  private validateToken(token: string, context: ExecutionContext) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-      if (decoded.type !== 'access') throw new UnauthorizedException('Invalid token type!');
-      return decoded;
-    } catch {
-      throw new UnauthorizedException('Invalid token!');
+      // Decodifica o token SEM validar assinatura (só para inspecionar)
+      const decoded: any = jwt.decode(token);
+      if (!decoded || !decoded.type)
+        throw new UnauthorizedException('Invalid token payload!');
+
+      // Verifica o tipo de token esperado na rota (padrão = access)
+      const expectedType =
+        this.reflector.get<'access' | 'refresh'>('tokenType', context.getHandler()) ||
+        'access';
+
+      // Tipo errado de token para a rota
+      if (decoded.type !== expectedType)
+        throw new UnauthorizedException(
+          `Invalid token type for this route! Expected ${expectedType}`,
+        );
+
+      // Seleciona o secret de acordo com o tipo
+      const secret =
+        decoded.type === 'refresh'
+          ? process.env.JWT_REFRESH_SECRET
+          : process.env.JWT_ACCESS_SECRET;
+
+      // Verifica assinatura e validade
+      const verified = jwt.verify(token, secret);
+
+      return verified;
+    } catch (err) {
+      throw new UnauthorizedException('Invalid or expired token!');
     }
   }
 
   private hasRequiredRoles(user: any, requiredRoles: string[]): boolean {
-    if (requiredRoles.length === 0 || undefined || null) return true
+    if (!requiredRoles?.length) return true;
     return requiredRoles.some((role) => user.role === role);
-  }
-
-  private shouldSkipGuard(context: ExecutionContext): boolean {
-    return this.reflector.get<boolean>('skipAuthGuard', context.getHandler()) ?? false;
   }
 }
