@@ -84,16 +84,16 @@ export class UsersService {
   async refreshToken(token: string, userId: number) {
     try {
       const user = await this.prisma.tb_user.findUnique({ where: { id: userId } });
-      if (!user || !user.refresh_token)
-        throw new UnauthorizedException('Invalid refresh token');
+      if (!user || !user.refresh_token) throw new UnauthorizedException('Invalid refresh token');
 
       const isValid = await bcrypt.compare(token, user.refresh_token);
       if (!isValid) throw new UnauthorizedException('Invalid refresh token');
+
       const tokens = this.generateTokens(user);
       await this.saveRefreshToken(user.id, tokens.refreshToken);
+      
       return tokens;
     } catch (err) {
-      console.log(err)
       throw new UnauthorizedException('Refresh token expired or invalid');
     }
   }

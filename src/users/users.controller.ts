@@ -150,7 +150,6 @@ export class UsersController {
     example: FindOneUserSE
   })
   findLoggedUser(@Req() req: any) {
-    console.log(req.user)
     return this.usersService.findLoggedUser(req.user.id);
   }
 
