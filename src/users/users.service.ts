@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { HashingService } from '../hashing/hashing.service';
 import { LoginDto } from './dto/login.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
@@ -17,12 +16,12 @@ import { DateTime } from 'luxon';
 import { AuthEnum } from 'src/commom/enums/auth.enum';
 import { SocialUserDto } from './dto/social_user.dto';
 import { RolesEnum } from 'src/commom/enums/roles.enum';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaExtendedService,
-    private readonly hashingService: HashingService,
     private readonly bucketSupabaseService: BucketSupabaseService,
     private readonly emailService: EmailService
   ) { }
@@ -47,14 +46,69 @@ export class UsersService {
     })
 
     if (!user) throw new NotFoundException('User not found with the email or phone provided!');
-    const isValidPassword = await this.hashingService.compare(password, user.password);
+    const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) throw new UnauthorizedException('Invalid password!');
 
-    return jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY);
+    const tokens = this.generateTokens(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
   }
 
+  generateTokens(user: any) {
+    const payload = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }
+
+    const accessToken = jwt.sign({ ...payload, type: 'access' }, process.env.JWT_ACCESS_SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign({ ...payload, type: 'refresh' }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+
+    return { accessToken, refreshToken };
+  }
+
+  async saveRefreshToken(userId: number, token: string) {
+    const hashed = await bcrypt.hash(token, 10);
+    await this.prisma.tb_user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        refresh_token: hashed
+      }
+    })
+  }
+
+  async refreshToken(token: string, userId: number) {
+    try {
+      const user = await this.prisma.tb_user.findUnique({ where: { id: userId } });
+      if (!user || !user.refresh_token) throw new UnauthorizedException('Invalid refresh token');
+
+      const isValid = await bcrypt.compare(token, user.refresh_token);
+      if (!isValid) throw new UnauthorizedException('Invalid refresh token');
+
+      const tokens = this.generateTokens(user);
+      await this.saveRefreshToken(user.id, tokens.refreshToken);
+      
+      return tokens;
+    } catch (err) {
+      throw new UnauthorizedException('Refresh token expired or invalid');
+    }
+  }
+
+  async logout(userId: number) {
+    await this.prisma.tb_user.update({
+      where: { id: userId },
+      data: { refresh_token: null },
+    });
+    return { message: 'Logged out successfully' };
+  }
+
+
   async create({ password, ...createUserDto }: CreateUserDto) {
-    const passwordHash = await this.hashingService.encrypt(password);
+    const passwordHash = await bcrypt.hash(password, 10);
     return await this.prisma.withAudit.tb_user.create(
       {
         data: {
@@ -119,7 +173,7 @@ export class UsersService {
 
     if (!record) throw new BadRequestException('Invalid or expired code');
 
-    const passwordHash = await this.hashingService.encrypt(dto.newPassword);
+    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
 
     await this.prisma.$transaction(async (tx) => {
 
@@ -231,7 +285,7 @@ export class UsersService {
 
     //se tiver que atualizar a senha, adiciona em dados para atualizar
     if (password) {
-      const passwordHash = await this.hashingService.encrypt(password);
+      const passwordHash = await bcrypt.hash(password, 10);
       dataToUpdate.password = passwordHash;
     }
 
@@ -362,6 +416,10 @@ export class UsersService {
     if (user.authType != AuthEnum.GOOGLE) {
       return new BadRequestException('Your login need password.')
     }
-    return await jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, process.env.JWT_SECRETY, { expiresIn: '5d' });
+
+    const tokens = this.generateTokens(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
   }
 }
