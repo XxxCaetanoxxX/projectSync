@@ -7,6 +7,7 @@ export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,
             $allModels: {
                 async create({ model, operation, args, query }) {
 
+
                     if (model === 'tb_user' && operation === 'create') {
                         args.data = {
                             ...args.data,
