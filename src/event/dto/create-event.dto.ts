@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDateString, IsInt, IsString } from "class-validator";
+import { IsDateString, IsEnum, IsInt, IsString } from "class-validator";
+import { EventEnum } from "src/commom/enums/event.enum";
 
 export class CreateEventDto {
     @ApiProperty()
@@ -8,11 +9,11 @@ export class CreateEventDto {
 
     @ApiProperty()
     @IsInt()
-    partyHouseId: number
-
-    @ApiProperty()
-    @IsInt()
     nu_ingressos: number
+
+    @IsEnum(EventEnum)
+    @ApiProperty()
+    tp_evento: EventEnum
 
     @ApiProperty()
     @IsDateString()

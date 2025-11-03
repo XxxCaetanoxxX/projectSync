@@ -43,15 +43,6 @@ async function main() {
         })
     ]);
 
-    // Casas de festa
-    const [house1, house2] = await Promise.all([
-        prisma.tb_party_house.create({
-            data: { name: 'House 1', address: 'Rua A, 123' }
-        }),
-        prisma.tb_party_house.create({
-            data: { name: 'House 2', address: 'Rua B, 456' }
-        })
-    ]);
 
     // Eventos
     function getEventDates() {
@@ -73,7 +64,6 @@ async function main() {
             data: {
                 name: 'SARARA',
                 organizerId: organizer.id,
-                partyHouseId: house1.id,
                 nu_ingressos: 100,
                 dt_start: start1,
                 dt_end: end1
@@ -83,7 +73,6 @@ async function main() {
             data: {
                 name: 'Planeta Brasil',
                 organizerId: organizer.id,
-                partyHouseId: house2.id,
                 nu_ingressos: 100,
                 dt_start: start2,
                 dt_end: end2

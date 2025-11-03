@@ -1,7 +1,8 @@
 import { ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsOptional, Min } from "class-validator";
+import { IsEnum, IsOptional, Min } from "class-validator";
 import { CreateEventDto } from "./create-event.dto";
+import { EventEnum } from "@prisma/client";
 
 export class FindAllEventsDto extends PartialType(CreateEventDto){
     @ApiPropertyOptional({default: 10})

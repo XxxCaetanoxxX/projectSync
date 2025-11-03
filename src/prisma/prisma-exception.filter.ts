@@ -9,6 +9,8 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse();
     const request = ctx.getRequest();
 
+    console.log(exception);
+
     if (exception instanceof PrismaClientUnknownRequestError) {
       return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,

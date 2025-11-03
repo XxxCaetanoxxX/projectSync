@@ -17,6 +17,7 @@ model tb_user {
   role                 Role
   authType             AuthType       @default(CREDENTIAL) //TODO remover
   imageId              Int?           @unique
+  refresh_token        String?
   dt_criacao           DateTime?
   dt_alteracao         DateTime?
   operation            String?
@@ -133,11 +134,11 @@ model th_ticket_hist {
 }
 
 model tb_event {
-  id                   Int                  @id @default(autoincrement())
+  id                   Int              @id @default(autoincrement())
   name                 String
   organizerId          Int
-  partyHouseId         Int
-  nu_ingressos         Int                  @default(1000) //TODO depois remover
+  nu_ingressos         Int              @default(1000) //TODO depois remover
+  tp_evento            EventEnum?        @default(GENERICO)
   dt_start             DateTime
   dt_end               DateTime
   dt_criacao           DateTime?
@@ -147,9 +148,7 @@ model tb_event {
   nu_versao            Int?
   modified_by_id       Int?
   modified_by_name     String?
-  artists              tb_artist_on_event[]
-  organizer            tb_user              @relation("OrganizerToEvent", fields: [organizerId], references: [id])
-  party_house          tb_party_house       @relation(fields: [partyHouseId], references: [id], onDelete: Cascade)
+  organizer            tb_user          @relation("OrganizerToEvent", fields: [organizerId], references: [id])
   images               tb_event_image[]
   ticketTypes          tb_ticket_type[]
 }
@@ -159,8 +158,8 @@ model th_event_hist {
   event_id             Int
   name                 String
   organizerId          Int
-  partyHouseId         Int
   nu_ingressos         Int       @default(1000) //TODO depois remover
+  tp_evento            EventEnum? @default(GENERICO)
   dt_start             DateTime
   dt_end               DateTime
   dt_criacao           DateTime?
@@ -178,72 +177,6 @@ model tb_event_image {
   eventId Int
   path    String
   event   tb_event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-}
-
-model tb_artist {
-  id                   Int                  @id @default(autoincrement())
-  name                 String
-  dt_criacao           DateTime?
-  dt_alteracao         DateTime?
-  operation            String?
-  endpoint_modificador String?
-  nu_versao            Int?
-  modified_by_id       Int?
-  modified_by_name     String?
-  events               tb_artist_on_event[]
-}
-
-model th_artist_hist {
-  id                   Int       @id @default(autoincrement())
-  artist_id            Int
-  name                 String
-  dt_criacao           DateTime?
-  dt_alteracao         DateTime?
-  operation            String?
-  endpoint_modificador String?
-  nu_versao            Int?
-  modified_by_id       Int?
-  modified_by_name     String?
-  changes              String?   @default("")
-}
-
-model tb_artist_on_event {
-  id       Int       @id @default(autoincrement())
-  artistId Int
-  eventId  Int
-  artist   tb_artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  event    tb_event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  @@unique([artistId, eventId])
-}
-
-model tb_party_house {
-  id                   Int        @id @default(autoincrement())
-  name                 String
-  address              String
-  dt_criacao           DateTime?
-  dt_alteracao         DateTime?
-  operation            String?
-  endpoint_modificador String?
-  nu_versao            Int?
-  modified_by_id       Int?
-  modified_by_name     String?
-  events               tb_event[]
-}
-
-model th_party_house_hist {
-  id                   Int       @id @default(autoincrement())
-  party_house_id       Int
-  name                 String
-  address              String
-  dt_criacao           DateTime?
-  dt_alteracao         DateTime?
-  operation            String?
-  endpoint_modificador String?
-  nu_versao            Int?
-  modified_by_id       Int?
-  modified_by_name     String?
-  changes              String?   @default("")
 }
 
 model tb_batch {
@@ -302,4 +235,11 @@ enum Role {
 enum AuthType {
   CREDENTIAL
   GOOGLE
+}
+
+enum EventEnum {
+  SERTANEJO
+  PAGODE
+  ROCK
+  GENERICO
 }

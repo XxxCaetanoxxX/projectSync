@@ -5,7 +5,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
 import { EmailService } from '../email/email.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
-import { datenow } from 'src/commom/utils/datenow';
+import { datenow } from '../commom/utils/datenow';
 import { v4 as uuidv4 } from 'uuid';
 import * as QRCode from 'qrcode';
 
@@ -73,6 +73,16 @@ export class TicketService {
   }
 
   async deleteType(id: number) {
+    const ticket = await this.prisma.tb_ticket.findFirst({
+      where:{
+        ticketTypeId: id
+      }
+    })
+
+    if (ticket) {
+      throw new BadRequestException('Ticket type has tickets, you can\'t delete it!');
+    }
+
     const deletedType = await this.prisma.withAudit.tb_ticket_type.delete({ where: { id } });
     return { message: "Ticket type deleted successfully!", data: deletedType }
   }
@@ -223,6 +233,8 @@ export class TicketService {
           ticketTypeId: true,
           userId: true,
           batch_id: true,
+          code: true,
+          isUsed: true,
           batch: {
             select: {
               name: true,
