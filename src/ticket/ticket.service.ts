@@ -5,7 +5,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
 import { EmailService } from '../email/email.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
-import { datenow } from 'src/commom/utils/datenow';
+import { datenow } from '../commom/utils/datenow';
 import { v4 as uuidv4 } from 'uuid';
 import * as QRCode from 'qrcode';
 
