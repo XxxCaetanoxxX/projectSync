@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, Injectable } from '@nestjs/comm
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { UpdateBatchDto } from './dto/update-batch.dto';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
-import { datenow } from 'src/commom/utils/datenow';
+import { datenow } from '../commom/utils/datenow';
 
 @Injectable()
 export class BatchService {

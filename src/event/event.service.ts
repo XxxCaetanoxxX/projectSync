@@ -7,7 +7,7 @@ import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.servic
 import { UsersService } from '../users/users.service';
 import { RolesEnum } from "../commom/enums/roles.enum";
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
-import { datenow } from 'src/commom/utils/datenow';
+import { datenow } from '../commom/utils/datenow';
 
 
 

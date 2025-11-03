@@ -9,489 +9,492 @@ import { v4 as uuidv4 } from 'uuid';
 
 
 const prismaMock = {
+  tb_ticket: {
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  tb_event: {
+    findUnique: jest.fn(),
+  },
+  tb_ticket_type: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    findUniqueOrThrow: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  withAudit: {
+    $transaction: jest.fn(),
     tb_ticket: {
-        findFirst: jest.fn(),
-        create: jest.fn(),
-        findMany: jest.fn(),
-        findUnique: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-    },
-    tb_event: {
-        findUnique: jest.fn(),
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
     },
     tb_ticket_type: {
-        create: jest.fn(),
-        findMany: jest.fn(),
-        findUnique: jest.fn(),
-        findUniqueOrThrow: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
+      create: jest.fn(),
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
     },
-    withAudit: {
-        $transaction: jest.fn(),
-        tb_ticket: {
-            create: jest.fn(),
-            findMany: jest.fn(),
-            findUnique: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
-        },
-        tb_ticket_type: {
-            create: jest.fn(),
-            findFirst: jest.fn(),
-            findMany: jest.fn(),
-            findUnique: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
-        },
-    }
+  }
 }
 
 describe('Ticket type', () => {
-    let service: TicketService;
+  let service: TicketService;
 
-    beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            providers: [TicketService, EmailService,
-                {
-                    provide: PrismaExtendedService,
-                    useValue: prismaMock
-                }],
-        }).compile();
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [TicketService, EmailService,
+        {
+          provide: PrismaExtendedService,
+          useValue: prismaMock
+        }],
+    }).compile();
 
-        service = module.get<TicketService>(TicketService);
-    })
+    service = module.get<TicketService>(TicketService);
+  })
 
-    afterEach(async () => {
-        jest.clearAllMocks();
+  afterEach(async () => {
+    jest.clearAllMocks();
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  it('should create a ticket type', async () => {
+
+    const newType = {
+      id: 1,
+      name: 'test ticket type',
+      price: 100,
+      quantity: 10,
+      eventId: 1
+    }
+
+    prismaMock.tb_event.findUnique.mockResolvedValue({
+      id: 1,
+      nu_ingressos: 100,
+      ticketTypes: [
+        { id: 10, quantity: 20 },
+        { id: 11, quantity: 30 },
+      ],
     });
 
-    it('should be defined', () => {
-        expect(service).toBeDefined();
-    });
+    prismaMock.withAudit.tb_ticket_type.create.mockResolvedValue(newType);
 
-    it('should create a ticket type', async () => {
-
-        const newType = {
-            id: 1,
-            name: 'test ticket type',
-            price: 100,
-            quantity: 10,
-            eventId: 1
-        }
-
-        prismaMock.tb_event.findUnique.mockResolvedValue({
-            id: 1,
-            nu_ingressos: 100,
-            ticketTypes: [
-                { id: 10, quantity: 20 },
-                { id: 11, quantity: 30 },
-            ],
-        });
-
-        prismaMock.withAudit.tb_ticket_type.create.mockResolvedValue(newType);
-
-        const result = await service.createType({
-            name: 'test ticket type',
-            quantity: 10,
-            eventId: 1
-        })
-
-        expect(result).toEqual({
-            message: "Ticket type created successfully!",
-            data: newType,
-        });
-
+    const result = await service.createType({
+      name: 'test ticket type',
+      quantity: 10,
+      eventId: 1
     })
 
-    it('should update a type', async () => {
-        const updated = { id: 1, name: 'updated ticket type' }
-        prismaMock.tb_event.findUnique.mockResolvedValue({
-            id: 1,
-            nu_ingressos: 100,
-            ticketTypes: [
-                { id: 10, quantity: 20 },
-                { id: 11, quantity: 30 },
-            ],
-        });
-        prismaMock.withAudit.tb_ticket_type.update.mockResolvedValue({
-            id: 1,
-            name: 'updated ticket type',
-            quantity: 10,
-            eventId: 1,
-            dt_criacao: new Date(),
-            dt_alteracao: new Date(),
-            operation: 'UPDATE',
-            endpoint_modificador: 'test',
-            nu_versao: 1,
-            modified_by_id: 1,
-            modified_by_name: 'test'
-        })
-        const result = await service.updateType(1, updated)
-        expect(result).toMatchObject({
-            id: 1,
-            name: 'updated ticket type',
-            quantity: 10,
-            eventId: 1,
-            dt_criacao: new Date(),
-            dt_alteracao: new Date(),
-            operation: 'UPDATE',
-            endpoint_modificador: 'test',
-            nu_versao: 1,
-            modified_by_id: 1,
-            modified_by_name: 'test'
-        })
-    })
-
-    it('should delete a type', async () => {
-        prismaMock.withAudit.tb_ticket_type.delete.mockResolvedValue({
-            id: 1,
-            name: 'updated ticket type',
-            quantity: 10,
-            eventId: 1,
-            dt_criacao: new Date(),
-            dt_alteracao: new Date(),
-            operation: 'DELETE',
-            endpoint_modificador: 'test',
-            nu_versao: 1,
-            modified_by_id: 1,
-            modified_by_name: 'test'
-        })
-        const result = await service.deleteType(1)
-        expect(result).toEqual({
-            message: 'Ticket type deleted successfully!',
-            ...result
-        })
-    })
-
-    it('should find all event types', async () => {
-        const now = new Date();
-        // Mock do retorno de tb_ticket_type.findMany()
-        prismaMock.tb_ticket_type.findMany.mockResolvedValue([
-            {
-                id: 1,
-                name: 'VIP',
-                eventId: 1,
-                quantity: 100,
-                batchs: [
-                    {
-                        id: 10,
-                        startDate: now,
-                        endDate: now,
-                        price: 150,
-                    },
-                ],
-                event: {
-                    name: 'Festival de Música',
-                },
-            },
-            {
-                id: 2,
-                name: 'Pista',
-                eventId: 1,
-                quantity: 200,
-                batchs: [
-                    {
-                        id: 11,
-                        startDate: now,
-                        endDate: now,
-                        price: 80,
-                    },
-                ],
-                event: {
-                    name: 'Festival de Música',
-                },
-            },
-        ]);
-
-        const result = await service.findAllEventTypes(1);
-
-        expect(prismaMock.tb_ticket_type.findMany).toHaveBeenCalledWith(
-            expect.objectContaining({
-                where: expect.objectContaining({ eventId: 1 }),
-            }),
-        );
-
-        expect(result).toEqual([
-            {
-                id: 1,
-                name: 'VIP',
-                event_id: 1,
-                event_name: 'Festival de Música',
-                quantity: 100,
-                batch: {
-                    id: 10,
-                    startDate: now,
-                    endDate: now,
-                    price: 150,
-                },
-            },
-            {
-                id: 2,
-                name: 'Pista',
-                event_id: 1,
-                event_name: 'Festival de Música',
-                quantity: 200,
-                batch: {
-                    id: 11,
-                    startDate: now,
-                    endDate: now,
-                    price: 80,
-                },
-            },
-        ]);
+    expect(result).toEqual({
+      message: "Ticket type created successfully!",
+      data: newType,
     });
 
-    it('should find one ticket type', async () => {
-        prismaMock.tb_ticket_type.findUniqueOrThrow = jest.fn().mockResolvedValue({
-            id: 1,
-            name: 'VIP',
-            eventId: 1,
-            quantity: 100,
-            event: {
-                name: 'Festival de Música',
-            },
-        });
+  })
 
-        const result = await service.findOneType(1);
+  it('should update a type', async () => {
+    const dt_criacao = new Date();
+    const dt_alteracao = new Date();
 
-        expect(prismaMock.tb_ticket_type.findUniqueOrThrow).toHaveBeenCalledWith({
-            where: { id: 1 },
-            select: {
-                id: true,
-                name: true,
-                eventId: true,
-                quantity: true,
-                event: {
-                    select: { name: true },
-                },
-            },
-        });
-
-        expect(result).toEqual({
-            id: 1,
-            name: 'VIP',
-            event_id: 1,
-            event_name: 'Festival de Música',
-            quantity: 100,
-        });
+    const updated = { id: 1, name: 'updated ticket type' }
+    prismaMock.tb_event.findUnique.mockResolvedValue({
+      id: 1,
+      nu_ingressos: 100,
+      ticketTypes: [
+        { id: 10, quantity: 20 },
+        { id: 11, quantity: 30 },
+      ],
     });
+    prismaMock.withAudit.tb_ticket_type.update.mockResolvedValue({
+      id: 1,
+      name: 'updated ticket type',
+      quantity: 10,
+      eventId: 1,
+      dt_criacao,
+      dt_alteracao,
+      operation: 'UPDATE',
+      endpoint_modificador: 'test',
+      nu_versao: 1,
+      modified_by_id: 1,
+      modified_by_name: 'test'
+    })
+    const result = await service.updateType(1, updated)
+    expect(result).toMatchObject({
+      id: 1,
+      name: 'updated ticket type',
+      quantity: 10,
+      eventId: 1,
+      dt_criacao,
+      dt_alteracao, 
+      operation: 'UPDATE',
+      endpoint_modificador: 'test',
+      nu_versao: 1,
+      modified_by_id: 1,
+      modified_by_name: 'test'
+    })
+  })
+
+  it('should delete a type', async () => {
+    prismaMock.withAudit.tb_ticket_type.delete.mockResolvedValue({
+      id: 1,
+      name: 'updated ticket type',
+      quantity: 10,
+      eventId: 1,
+      dt_criacao: new Date(),
+      dt_alteracao: new Date(),
+      operation: 'DELETE',
+      endpoint_modificador: 'test',
+      nu_versao: 1,
+      modified_by_id: 1,
+      modified_by_name: 'test'
+    })
+    const result = await service.deleteType(1)
+    expect(result).toEqual({
+      message: 'Ticket type deleted successfully!',
+      ...result
+    })
+  })
+
+  it('should find all event types', async () => {
+    const now = new Date();
+    // Mock do retorno de tb_ticket_type.findMany()
+    prismaMock.tb_ticket_type.findMany.mockResolvedValue([
+      {
+        id: 1,
+        name: 'VIP',
+        eventId: 1,
+        quantity: 100,
+        batchs: [
+          {
+            id: 10,
+            startDate: now,
+            endDate: now,
+            price: 150,
+          },
+        ],
+        event: {
+          name: 'Festival de Música',
+        },
+      },
+      {
+        id: 2,
+        name: 'Pista',
+        eventId: 1,
+        quantity: 200,
+        batchs: [
+          {
+            id: 11,
+            startDate: now,
+            endDate: now,
+            price: 80,
+          },
+        ],
+        event: {
+          name: 'Festival de Música',
+        },
+      },
+    ]);
+
+    const result = await service.findAllEventTypes(1);
+
+    expect(prismaMock.tb_ticket_type.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ eventId: 1 }),
+      }),
+    );
+
+    expect(result).toEqual([
+      {
+        id: 1,
+        name: 'VIP',
+        event_id: 1,
+        event_name: 'Festival de Música',
+        quantity: 100,
+        batch: {
+          id: 10,
+          startDate: now,
+          endDate: now,
+          price: 150,
+        },
+      },
+      {
+        id: 2,
+        name: 'Pista',
+        event_id: 1,
+        event_name: 'Festival de Música',
+        quantity: 200,
+        batch: {
+          id: 11,
+          startDate: now,
+          endDate: now,
+          price: 80,
+        },
+      },
+    ]);
+  });
+
+  it('should find one ticket type', async () => {
+    prismaMock.tb_ticket_type.findUniqueOrThrow = jest.fn().mockResolvedValue({
+      id: 1,
+      name: 'VIP',
+      eventId: 1,
+      quantity: 100,
+      event: {
+        name: 'Festival de Música',
+      },
+    });
+
+    const result = await service.findOneType(1);
+
+    expect(prismaMock.tb_ticket_type.findUniqueOrThrow).toHaveBeenCalledWith({
+      where: { id: 1 },
+      select: {
+        id: true,
+        name: true,
+        eventId: true,
+        quantity: true,
+        event: {
+          select: { name: true },
+        },
+      },
+    });
+
+    expect(result).toEqual({
+      id: 1,
+      name: 'VIP',
+      event_id: 1,
+      event_name: 'Festival de Música',
+      quantity: 100,
+    });
+  });
 
 });
 
 
 describe('Ticket', () => {
-    let service: TicketService;
-  
-    beforeAll(async () => {
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [
-          TicketService,
-          EmailService,
-          {
-            provide: PrismaExtendedService,
-            useValue: prismaMock,
-          },
-        ],
-      }).compile();
-  
-      service = module.get<TicketService>(TicketService);
-    });
-  
-    afterEach(() => {
-      jest.clearAllMocks();
+  let service: TicketService;
+
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        TicketService,
+        EmailService,
+        {
+          provide: PrismaExtendedService,
+          useValue: prismaMock,
+        },
+      ],
+    }).compile();
+
+    service = module.get<TicketService>(TicketService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should buy a ticket successfully', async () => {
+    const now = new Date();
+
+    const mockTicketType = {
+      id: 1,
+      name: 'VIP',
+      eventId: 10,
+      quantity: 5,
+      batchs: [{ id: 99, startDate: now, endDate: now }],
+      event: { name: 'Show do Caetano', dt_start: new Date(now.getTime() + 1000000) },
+    };
+
+    const mockTicket = {
+      id: 123,
+      ticketName: 'VIP - Show do Caetano',
+      ticketTypeId: 1,
+      userId: 7,
+      batch_id: 99,
+      code: uuidv4(),
+      isUsed: false,
+      user: { name: 'User Test', email: 'user@example.com' },
+      batch: { name: 'Lote 1', price: 100 },
+    };
+
+    prismaMock.withAudit.$transaction.mockImplementation(async (cb) => {
+      const tx = prismaMock.withAudit;
+      tx.tb_ticket_type.findFirst.mockResolvedValue(mockTicketType);
+      tx.tb_ticket.create.mockResolvedValue(mockTicket);
+      tx.tb_ticket_type.update.mockResolvedValue({ ...mockTicketType, quantity: 4 });
+      return cb(tx);
     });
 
-    it('should buy a ticket successfully', async () => {
-      const now = new Date();
-  
-      const mockTicketType = {
+    const result = await service.buyTicket(1, 7);
+
+    expect(result.message).toBe('Ticket bought successfully!');
+    expect(result.data.ticketName).toContain('VIP');
+  });
+
+  it('should throw error if ticket type out of stock', async () => {
+    prismaMock.withAudit.$transaction.mockImplementation(async (cb) => {
+      const tx = prismaMock.withAudit;
+      tx.tb_ticket_type.findFirst.mockResolvedValue({
         id: 1,
         name: 'VIP',
-        eventId: 10,
-        quantity: 5,
-        batchs: [{ id: 99, startDate: now, endDate: now }],
-        event: { name: 'Show do Caetano', dt_start: new Date(now.getTime() + 1000000) },
-      };
-  
-      const mockTicket = {
-        id: 123,
-        ticketName: 'VIP - Show do Caetano',
-        ticketTypeId: 1,
-        userId: 7,
-        batch_id: 99,
-        code: uuidv4(),
-        isUsed: false,
-        user: { name: 'User Test', email: 'user@example.com' },
-        batch: { name: 'Lote 1', price: 100 },
-      };
-  
-      prismaMock.withAudit.$transaction.mockImplementation(async (cb) => {
-        const tx = prismaMock.withAudit;
-        tx.tb_ticket_type.findFirst.mockResolvedValue(mockTicketType);
-        tx.tb_ticket.create.mockResolvedValue(mockTicket);
-        tx.tb_ticket_type.update.mockResolvedValue({ ...mockTicketType, quantity: 4 });
-        return cb(tx);
+        quantity: 0,
+        event: { dt_start: new Date(Date.now() + 1000000) },
       });
-  
-      const result = await service.buyTicket(1, 7);
-  
-      expect(result.message).toBe('Ticket bought successfully!');
-      expect(result.data.ticketName).toContain('VIP');
+      return cb(tx);
     });
-  
-    it('should throw error if ticket type out of stock', async () => {
-        prismaMock.withAudit.$transaction.mockImplementation(async (cb) => {
-          const tx = prismaMock.withAudit;
-          tx.tb_ticket_type.findFirst.mockResolvedValue({
-            id: 1,
-            name: 'VIP',
-            quantity: 0,
-            event: { dt_start: new Date(Date.now() + 1000000) },
-          });
-          return cb(tx);
-        });
 
-        await expect(service.buyTicket(1, 7)).rejects.toThrow('Ticket type out of stock!');
-      });
-      
-    it('should throw error if event has started', async () => {
-      prismaMock.withAudit.$transaction.mockImplementation(async (cb) => {
-        const tx = prismaMock.withAudit;
-        tx.tb_ticket_type.findFirst.mockResolvedValue({
-          id: 1,
-          name: 'VIP',
-          quantity: 10,
-          event: { dt_start: new Date(Date.now() - 1000 * 60 * 60 * 4) },
-          batchs: [{ id:1}],
-        });
-        return cb(tx);
-      });
-  
-      await expect(service.buyTicket(1, 7)).rejects.toThrow('Event has started.');
-    });
-  
-    it('should validate a ticket successfully', async () => {
-      prismaMock.tb_ticket.findUnique.mockResolvedValue({ code: 'abc123', isUsed: false });
-      prismaMock.withAudit.tb_ticket.update = jest.fn().mockResolvedValue({});
-  
-      const result = await service.validateTicket('abc123');
-  
-      expect(result).toEqual({ message: 'Ticket validated successfully!' });
-      expect(prismaMock.withAudit.tb_ticket.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { code: 'abc123' },
-          data: expect.objectContaining({ isUsed: true }),
-        }),
-      );
-    });
-  
-    it('should throw NotFound if ticket not found', async () => {
-      prismaMock.tb_ticket.findUnique.mockResolvedValue(null);
-      await expect(service.validateTicket('notfound')).rejects.toThrow(NotFoundException);
-    });
-  
-    it('should throw BadRequest if ticket already used', async () => {
-      prismaMock.tb_ticket.findUnique.mockResolvedValue({ isUsed: true });
-      await expect(service.validateTicket('used')).rejects.toThrow(BadRequestException);
-    });
-  
-    it('should return user tickets formatted', async () => {
-      prismaMock.tb_ticket.findMany.mockResolvedValue([
-        {
-          id: 1,
-          ticketTypeId: 2,
-          userId: 3,
-          user: { name: 'Caetano' },
-          ticket_type: {
-            name: 'VIP',
-            event: { id: 10, name: 'Show' },
-          },
-        },
-      ]);
-  
-      const result = await service.findUserTickets(3);
-  
-      expect(result).toEqual([
-        {
-          id: 1,
-          ticket_type_id: 2,
-          user_id: 3,
-          event_id: 10,
-          event_name: 'Show',
-          ticket_type_name: 'VIP',
-          user_name: 'Caetano',
-        },
-      ]);
-    });
-  
-    it('should return one ticket correctly', async () => {
-      const now = new Date();
-      prismaMock.tb_ticket.findFirst.mockResolvedValue({
+    await expect(service.buyTicket(1, 7)).rejects.toThrow('Ticket type out of stock!');
+  });
+
+  it('should throw error if event has started', async () => {
+    prismaMock.withAudit.$transaction.mockImplementation(async (cb) => {
+      const tx = prismaMock.withAudit;
+      tx.tb_ticket_type.findFirst.mockResolvedValue({
         id: 1,
-        ticketName: 'VIP - Show',
-        dt_criacao: now,
+        name: 'VIP',
+        quantity: 10,
+        event: { dt_start: new Date(Date.now() - 1000 * 60 * 60 * 4) },
+        batchs: [{ id: 1 }],
+      });
+      return cb(tx);
+    });
+
+    await expect(service.buyTicket(1, 7)).rejects.toThrow('Event has started.');
+  });
+
+  it('should validate a ticket successfully', async () => {
+    prismaMock.tb_ticket.findUnique.mockResolvedValue({ code: 'abc123', isUsed: false });
+    prismaMock.withAudit.tb_ticket.update = jest.fn().mockResolvedValue({});
+
+    const result = await service.validateTicket('abc123');
+
+    expect(result).toEqual({ message: 'Ticket validated successfully!' });
+    expect(prismaMock.withAudit.tb_ticket.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { code: 'abc123' },
+        data: expect.objectContaining({ isUsed: true }),
+      }),
+    );
+  });
+
+  it('should throw NotFound if ticket not found', async () => {
+    prismaMock.tb_ticket.findUnique.mockResolvedValue(null);
+    await expect(service.validateTicket('notfound')).rejects.toThrow(NotFoundException);
+  });
+
+  it('should throw BadRequest if ticket already used', async () => {
+    prismaMock.tb_ticket.findUnique.mockResolvedValue({ isUsed: true });
+    await expect(service.validateTicket('used')).rejects.toThrow(BadRequestException);
+  });
+
+  it('should return user tickets formatted', async () => {
+    prismaMock.tb_ticket.findMany.mockResolvedValue([
+      {
+        id: 1,
         ticketTypeId: 2,
         userId: 3,
-        code: 'abc123',
-        user: { name: 'Caetano', email: 'c@example.com' },
+        user: { name: 'Caetano' },
         ticket_type: {
           name: 'VIP',
           event: { id: 10, name: 'Show' },
         },
-      });
-  
-      const result = await service.findOneTicket(1);
-  
-      expect(result).toEqual({
+      },
+    ]);
+
+    const result = await service.findUserTickets(3);
+
+    expect(result).toEqual([
+      {
         id: 1,
-        ticket_name: 'VIP - Show',
-        created_at: now,
         ticket_type_id: 2,
         user_id: 3,
         event_id: 10,
         event_name: 'Show',
         ticket_type_name: 'VIP',
         user_name: 'Caetano',
-        user_email: 'c@example.com',
-        code: 'abc123',
-      });
+      },
+    ]);
+  });
+
+  it('should return one ticket correctly', async () => {
+    const now = new Date();
+    prismaMock.tb_ticket.findFirst.mockResolvedValue({
+      id: 1,
+      ticketName: 'VIP - Show',
+      dt_criacao: now,
+      ticketTypeId: 2,
+      userId: 3,
+      code: 'abc123',
+      user: { name: 'Caetano', email: 'c@example.com' },
+      ticket_type: {
+        name: 'VIP',
+        event: { id: 10, name: 'Show' },
+      },
     });
-  
-    it('should throw NotFound if ticket does not exist', async () => {
-      prismaMock.tb_ticket.findFirst.mockResolvedValue(null);
-      await expect(service.findOneTicket(999)).rejects.toThrow(NotFoundException);
-    });
-  
-    it('should update a ticket successfully', async () => {
-      const mockTicket = { id: 1, ticketName: 'VIP' };
-      prismaMock.withAudit.tb_ticket.update.mockResolvedValue(mockTicket);
-  
-      const result = await service.updateTicket(1, { ticketName: 'VIP updated teste' });
-  
-      expect(result).toEqual({
-        message: 'Ticket updated successfully!',
-        data: mockTicket,
-      });
-    });
-  
-    it('should delete a ticket successfully', async () => {
-      const mockTicket = { ticket_type_id: 2 };
-      jest.spyOn(service, 'findOneTicket').mockResolvedValue(mockTicket as any);
-  
-      prismaMock.withAudit.$transaction.mockImplementation(async (cb) => {
-        const tx = prismaMock.withAudit;
-        tx.tb_ticket_type.update.mockResolvedValue({});
-        tx.tb_ticket.delete.mockResolvedValue({});
-        return cb(tx);
-      });
-  
-      const result = await service.deleteTicket(1);
-  
-      expect(result).toEqual({ message: 'Ticket deleted successfully!' });
+
+    const result = await service.findOneTicket(1);
+
+    expect(result).toEqual({
+      id: 1,
+      ticket_name: 'VIP - Show',
+      created_at: now,
+      ticket_type_id: 2,
+      user_id: 3,
+      event_id: 10,
+      event_name: 'Show',
+      ticket_type_name: 'VIP',
+      user_name: 'Caetano',
+      user_email: 'c@example.com',
+      code: 'abc123',
     });
   });
+
+  it('should throw NotFound if ticket does not exist', async () => {
+    prismaMock.tb_ticket.findFirst.mockResolvedValue(null);
+    await expect(service.findOneTicket(999)).rejects.toThrow(NotFoundException);
+  });
+
+  it('should update a ticket successfully', async () => {
+    const mockTicket = { id: 1, ticketName: 'VIP' };
+    prismaMock.withAudit.tb_ticket.update.mockResolvedValue(mockTicket);
+
+    const result = await service.updateTicket(1, { ticketName: 'VIP updated teste' });
+
+    expect(result).toEqual({
+      message: 'Ticket updated successfully!',
+      data: mockTicket,
+    });
+  });
+
+  it('should delete a ticket successfully', async () => {
+    const mockTicket = { ticket_type_id: 2 };
+    jest.spyOn(service, 'findOneTicket').mockResolvedValue(mockTicket as any);
+
+    prismaMock.withAudit.$transaction.mockImplementation(async (cb) => {
+      const tx = prismaMock.withAudit;
+      tx.tb_ticket_type.update.mockResolvedValue({});
+      tx.tb_ticket.delete.mockResolvedValue({});
+      return cb(tx);
+    });
+
+    const result = await service.deleteTicket(1);
+
+    expect(result).toEqual({ message: 'Ticket deleted successfully!' });
+  });
+});
 
 // describe('Ticket Type', () => {
 //     let service: TicketService;
