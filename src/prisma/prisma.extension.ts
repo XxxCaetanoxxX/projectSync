@@ -1,11 +1,12 @@
 import { Prisma, PrismaClient } from "@prisma/client";
-import { datenow } from "src/commom/utils/datenow";
+import { datenow } from "../commom/utils/datenow";
 
 export const AuditLogExtension = (prisma: PrismaClient, url: string, user?: any,) =>
     Prisma.defineExtension({
         query: {
             $allModels: {
                 async create({ model, operation, args, query }) {
+
 
                     if (model === 'tb_user' && operation === 'create') {
                         args.data = {

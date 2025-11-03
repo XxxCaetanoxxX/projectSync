@@ -1,14 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { PrismaService } from '../prisma/prisma.service';
 import { FindAllEventsDto } from './dto/find-all-events.dto';
 import { PdfService } from '../pdf/pdf.service';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 import { UsersService } from '../users/users.service';
 import { RolesEnum } from "../commom/enums/roles.enum";
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
-import { datenow } from 'src/commom/utils/datenow';
+import { datenow } from '../commom/utils/datenow';
 
 
 
@@ -46,15 +45,8 @@ export class EventService {
       },
       omit: {
         organizerId: true,
-        partyHouseId: true
       },
       include: {
-        party_house: {
-          select: {
-            name: true,
-            address: true
-          }
-        },
         images: {
           select: {
             id: true,
@@ -77,21 +69,6 @@ export class EventService {
     const event = await this.prisma.tb_event.findUniqueOrThrow({
       where: { id },
       include: {
-        artists: {
-          include: {
-            artist: {
-              select: {
-                id: true,
-                name: true
-              }
-            }
-          }
-        },
-        party_house: {
-          select: {
-            name: true
-          }
-        },
         images: {
           select: {
             id: true,
@@ -119,8 +96,6 @@ export class EventService {
       id: event.id,
       organizerId: event.organizerId,
       name: event.name,
-      party_house: event.party_house.name,
-      artists: event.artists.map(a => a.artist),
       images: event.images,
       ticketTypes: event.ticketTypes
     }
@@ -129,19 +104,11 @@ export class EventService {
   async findOnePdf(id: number) {
     const event = await this.prisma.tb_event.findUnique({
       where: { id: id },
-      include: {
-        party_house: true,
-        artists: {
-          include: { artist: true },
-        },
-      },
     });
 
     const eventData = {
       id: event.id,
       name: event.name,
-      party_house: event.party_house,
-      artists: event.artists.map(a => ({ id: a.artist.id, name: a.artist.name })),
     };
 
     const pdfBuffer = await this.pdfService.generatePdf(eventData);

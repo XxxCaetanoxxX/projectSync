@@ -13,7 +13,6 @@ export class PrismaExtendedService extends PrismaClient {
     }
 
     get withAudit() {
-        // console.log(this.request)
         return this.prismaService.$extends(
             AuditLogExtension(this.prismaService, this.request.url, this.request.user)
         )

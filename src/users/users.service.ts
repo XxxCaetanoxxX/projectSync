@@ -7,15 +7,15 @@ import { FindOneUserDto } from './dto/find-one-user.dto';
 import * as jwt from 'jsonwebtoken';
 import { BucketSupabaseService } from '../bucket_supabase/bucket_supabase.service';
 import { PrismaExtendedService } from '../prisma/prisma-extended.service';
-import { datenow } from 'src/commom/utils/datenow';
+import { datenow } from '../commom/utils/datenow';
 import { ForgotPasswordDto } from './dto/forgot_password.dto';
-import { EmailService } from 'src/email/email.service';
+import { EmailService } from '../email/email.service';
 import { ResetPasswordDto } from './dto/reset_password.dto';
 import { VerifyResetCodeDto } from './dto/verify_code.dto';
 import { DateTime } from 'luxon';
-import { AuthEnum } from 'src/commom/enums/auth.enum';
+import { AuthEnum } from '../commom/enums/auth.enum';
 import { SocialUserDto } from './dto/social_user.dto';
-import { RolesEnum } from 'src/commom/enums/roles.enum';
+import { RolesEnum } from '../commom/enums/roles.enum';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
