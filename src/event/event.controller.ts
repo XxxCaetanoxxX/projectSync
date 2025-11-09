@@ -10,6 +10,7 @@ import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiResponseUtil } from 'src/commom/decorators/api-response-util.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { Public } from 'src/commom/decorators/public_decorator.decorator';
 
 @ApiBearerAuth()
 @Controller('events')
@@ -28,6 +29,7 @@ export class EventController {
   }
 
   @Get()
+  @Public()
   @ApiResponseUtil({
     status: 200,
     summary: 'Return all events.',
