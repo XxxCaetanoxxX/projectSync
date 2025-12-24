@@ -266,7 +266,13 @@ export class UsersService {
   async findLoggedUser(id: number) {
     return await this.prisma.tb_user.findFirst({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        cpf: true,
+        phone: true,
+        role: true,
         image: {
           select: {
             path: true
