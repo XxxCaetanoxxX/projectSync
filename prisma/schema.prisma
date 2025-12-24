@@ -38,6 +38,8 @@ model th_user_hist {
   phone                String
   password             String
   role                 Role
+  authType             AuthType       @default(CREDENTIAL) //TODO remover
+  refresh_token        String?
   imageId              Int?
   user_id              Int
   dt_criacao           DateTime?
