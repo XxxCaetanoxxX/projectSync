@@ -27,12 +27,11 @@ jobs:
                         set -e
 
                         rm -rf $APP_DIR
-                        mkdir -p $APP_DIR
-                        cd $APP_DIR
 
                         echo "${{ secrets.ENV_PROD }}" > .env
 
-                        git clone -b prod https://github.com/${{ github.repository }} .
+                        git clone -b prod https://github.com/${{ github.repository }} $APP_DIR
+                        cd $APP_DIR
 
                         docker build -t $APP_NAME .
                         docker stop $APP_NAME || true
