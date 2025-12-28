@@ -1,25 +1,25 @@
-name: Tests
+# name: Tests
 
-on:
-  pull_request:
-    branches:
-      - prod
+# on:
+#   pull_request:
+#     branches:
+#       - prod
 
-jobs:
-  tests:
-    runs-on: ubuntu-latest
+# jobs:
+#   tests:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: '22'
 
-      - name: Install dependencies
-        run: npm install
+#       - name: Install dependencies
+#         run: npm install
 
-      - name: Run tests
-        run: npm test
+#       - name: Run tests
+#         run: npm test

@@ -1,47 +1,47 @@
-name: Deploy PROD
+# name: Deploy PROD
 
-on:
-    push:
-        branches:
-            - prod
+# on:
+#     push:
+#         branches:
+#             - prod
 
-jobs:
-    deploy:
-        runs-on: ubuntu-latest
+# jobs:
+#     deploy:
+#         runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+#         steps:
+#             - name: Checkout repository
+#               uses: actions/checkout@v4
 
-            - name: Setup SSH
-              uses: webfactory/ssh-agent@v0.9.0
-              with:
-                  ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+#             - name: Setup SSH
+#               uses: webfactory/ssh-agent@v0.9.0
+#               with:
+#                   ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
-            - name: Deploy to AWS VPS (PROD)
-              run: |
-                  APP_NAME="eventix-backend-prod"
-                  APP_DIR="~/projetos/$APP_NAME"
+#             - name: Deploy to AWS VPS (PROD)
+#               run: |
+#                   APP_NAME="eventix-backend-prod"
+#                   APP_DIR="~/projetos/$APP_NAME"
 
-                    ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
-                        set -e
+#                     ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
+#                         set -e
 
-                        rm -rf $APP_DIR
+#                         rm -rf $APP_DIR
 
-                        echo "${{ secrets.ENV_PROD }}" > .env
+#                         echo "${{ secrets.ENV_PROD }}" > .env
 
-                        git clone -b prod https://github.com/${{ github.repository }} $APP_DIR
-                        cd $APP_DIR
+#                         git clone -b prod https://github.com/${{ github.repository }} $APP_DIR
+#                         cd $APP_DIR
 
-                        docker build -t $APP_NAME .
-                        docker stop $APP_NAME || true
-                        docker rm $APP_NAME || true
+#                         docker build -t $APP_NAME .
+#                         docker stop $APP_NAME || true
+#                         docker rm $APP_NAME || true
 
-                        docker run -d \
-                            --env-file .env \
-                            --name $APP_NAME \
-                            -p 3000:3000 \
-                            --restart always \
-                            $APP_NAME
-                    EOF
+#                         docker run -d \
+#                             --env-file .env \
+#                             --name $APP_NAME \
+#                             -p 3000:3000 \
+#                             --restart always \
+#                             $APP_NAME
+#                     EOF
 
