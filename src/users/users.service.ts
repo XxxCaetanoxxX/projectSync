@@ -91,7 +91,7 @@ export class UsersService {
 
       const tokens = this.generateTokens(user);
       await this.saveRefreshToken(user.id, tokens.refreshToken);
-      
+
       return tokens;
     } catch (err) {
       throw new UnauthorizedException('Refresh token expired or invalid');
@@ -420,7 +420,7 @@ export class UsersService {
 
 
     if (user.authType != AuthEnum.GOOGLE) {
-      return new BadRequestException('Your login need password.')
+      throw new BadRequestException('Your login need password.')
     }
 
     const tokens = this.generateTokens(user);

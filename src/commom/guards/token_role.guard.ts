@@ -11,7 +11,7 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class TokenRoleGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector) { }
 
   canActivate(
     context: ExecutionContext,
@@ -54,34 +54,18 @@ export class TokenRoleGuard implements CanActivate {
   }
 
   private validateToken(token: string, context: ExecutionContext) {
+    const expectedType = this.reflector.get<'access' | 'refresh'>('tokenType', context.getHandler()) || 'access';
+    const secret = expectedType === 'refresh'
+      ? process.env.JWT_REFRESH_SECRET
+      : process.env.JWT_ACCESS_SECRET;
+
     try {
-      // Decodifica o token SEM validar assinatura (só para inspecionar)
-      const decoded: any = jwt.decode(token);
-      if (!decoded || !decoded.type)
-        throw new UnauthorizedException('Invalid token payload!');
-
-      // Verifica o tipo de token esperado na rota (padrão = access)
-      const expectedType =
-        this.reflector.get<'access' | 'refresh'>('tokenType', context.getHandler()) ||
-        'access';
-
-      // Tipo errado de token para a rota
-      if (decoded.type !== expectedType)
-        throw new UnauthorizedException(
-          `Invalid token type for this route! Expected ${expectedType}`,
-        );
-
-      // Seleciona o secret de acordo com o tipo
-      const secret =
-        decoded.type === 'refresh'
-          ? process.env.JWT_REFRESH_SECRET
-          : process.env.JWT_ACCESS_SECRET;
-
-      // Verifica assinatura e validade
-      const verified = jwt.verify(token, secret);
-
+      const verified = jwt.verify(token, secret) as any;
+      if (verified.type !== expectedType) {
+        throw new UnauthorizedException(`Invalid token type for this route! Expected ${expectedType}`);
+      }
       return verified;
-    } catch (err) {
+    } catch {
       throw new UnauthorizedException('Invalid or expired token!');
     }
   }
