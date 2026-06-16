@@ -250,7 +250,9 @@ export class UsersService {
         ]
       },
       omit: {
-        imageId: true
+        imageId: true,
+        password: true,
+        refresh_token: true,
       },
       include: {
         image: {
@@ -298,6 +300,13 @@ export class UsersService {
     const res = await this.prisma.withAudit.tb_user.update({
       where: { id },
       data: dataToUpdate,
+      include:{
+        image: {
+          select:{
+            path: true
+          }
+        }
+      }
     });
 
     return {
