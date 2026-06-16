@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { Public } from 'src/commom/decorators/public_decorator.decorator';
 import { Roles } from 'src/commom/decorators/roles_decorator.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -153,17 +154,29 @@ export class UsersController {
     return this.usersService.findLoggedUser(req.user.id);
   }
 
-  @Roles('ADMIN', 'ORGANIZER')
-  @Patch(':id')
+  @Roles('ADMIN', 'ORGANIZER', 'PARTICIPANT')
+  @Patch('me')
   @ApiResponseUtil({
     status: 200,
-    summary: 'Update the user.',
+    summary: 'Update the logged user profile.',
     example: UpdateUserSE
   })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  updateProfile(@Req() req: any, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(req.user.id, updateUserDto);
   }
 
+  @Roles('ADMIN', 'ORGANIZER', 'PARTICIPANT')
+  @Patch('me/password')
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'Update the user password.',
+    example: {
+      message: "Password updated successfully!"
+    }
+  })
+  updatePassword(@Req() req: any, @Body() updatePasswordDto: UpdatePasswordDto) {
+    return this.usersService.updatePassword(req.user.id, updatePasswordDto);
+  }
 
   @UseInterceptors(FileInterceptor('userfile')) //nome do campo form-data que vai estar o arquivo no postman
   @Patch('upload/image')
@@ -182,6 +195,17 @@ export class UsersController {
     })
   ) file: Express.Multer.File, @Req() req: any) {
     return await this.usersService.uploadAvatarImage(req.user.id, file);
+  }
+
+  @Roles('ADMIN')
+  @Patch(':id')
+  @ApiResponseUtil({
+    status: 200,
+    summary: 'Update the user.',
+    example: UpdateUserSE
+  })
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Roles('ADMIN', 'ORGANIZER')

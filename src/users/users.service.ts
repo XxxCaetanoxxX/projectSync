@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { FindOneUserDto } from './dto/find-one-user.dto';
 import * as jwt from 'jsonwebtoken';
@@ -285,33 +286,59 @@ export class UsersService {
   }
 
 
-  async update(id: number, { password, ...updateUserDto }: UpdateUserDto) {
+  async update(id: number, updateUserDto: UpdateUserDto) {
     let dataToUpdate: any = {
       nu_versao: { increment: 1 },
       ...updateUserDto,
     };
 
-    //se tiver que atualizar a senha, adiciona em dados para atualizar
-    if (password) {
-      const passwordHash = await bcrypt.hash(password, 10);
-      dataToUpdate.password = passwordHash;
-    }
-
     const res = await this.prisma.withAudit.tb_user.update({
       where: { id },
       data: dataToUpdate,
-      include:{
+      include: {
         image: {
-          select:{
+          select: {
             path: true
           }
         }
       }
     });
 
+    delete res.refresh_token;
+    delete res.password;
+
     return {
       message: "User updated!",
       data: res
+    }
+  }
+
+  async updatePassword(id: number, updatePasswordDto: UpdatePasswordDto) {
+    const user = await this.prisma.tb_user.findUnique({
+      where: { id }
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found!");
+    }
+
+    const isValidPassword = await bcrypt.compare(updatePasswordDto.currentPassword, user.password);
+    if (!isValidPassword) {
+      throw new BadRequestException("Current password does not match!");
+    }
+
+    const passwordHash = await bcrypt.hash(updatePasswordDto.newPassword, 10);
+
+    await this.prisma.tb_user.update({
+      where: { id },
+      data: {
+        password: passwordHash,
+        nu_versao: { increment: 1 }
+      }
+    });
+
+    return {
+      message: "Password updated successfully!"
     }
   }
 
